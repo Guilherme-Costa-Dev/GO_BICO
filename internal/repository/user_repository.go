@@ -22,7 +22,7 @@ func NewUserRepository(client *firestore.Client) UserRepository {
 }
 
 func (r *userRepository) Create(ctx context.Context, user *domain.User) error {
-	// Insere na coleção "usuarios". O Firebase criará a coleção se ela não existir!
+	// Insere na coleção "usuarios". O Firebase criará a coleção se ela não existir
 	docRef, _, err := r.client.Collection("usuarios").Add(ctx, map[string]interface{}{
 		"nome":  user.Nome,
 		"email": user.Email,
