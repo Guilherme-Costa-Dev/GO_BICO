@@ -1,0 +1,22 @@
+# Credenciais secretas e variáveis de ambiente (NUNCA ENVIAR PARA O GIT)
+serviceAccountKey.json
+*.json
+.env
+.env.*
+
+# Binários gerados pelo Go
+*.exe
+*.exe.log
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/bin
+server
+
+# Pastas da IDE e Sistema Operacional
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
