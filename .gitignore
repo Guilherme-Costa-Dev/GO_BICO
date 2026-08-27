@@ -20,3 +20,4 @@ server
 .idea/
 .DS_Store
 Thumbs.db
+/go
