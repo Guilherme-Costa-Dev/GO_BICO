@@ -13,7 +13,11 @@ import (
 func InitFirestore(ctx context.Context, serviceAccountPath string) (*firestore.Client, error) {
 	opt := option.WithCredentialsFile(serviceAccountPath)
 
-	app, err := firebase.NewApp(ctx, nil, opt)
+	appConfig := &firebase.Config{
+		ProjectID: "bico-23171",
+	}
+
+	app, err := firebase.NewApp(ctx, appConfig, opt)
 	if err != nil {
 		return nil, fmt.Errorf("erro ao inicializar app do firebase: %w", err)
 	}
