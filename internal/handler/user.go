@@ -7,15 +7,18 @@ import (
 	"bico/internal/domain"
 
 	"cloud.google.com/go/firestore"
+	"firebase.google.com/go/v4/auth"
 )
 
 type UserHandler struct {
-	db *firestore.Client
+	db   *firestore.Client
+	auth *auth.Client
 }
 
-func NewUserHandler(db *firestore.Client) *UserHandler {
+func NewUserHandler(db *firestore.Client, authClient *auth.Client) *UserHandler {
 	return &UserHandler{
-		db: db,
+		db:   db,
+		auth: authClient,
 	}
 }
 
@@ -29,6 +32,20 @@ func (h *UserHandler) CreateCliente(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "JSON invalido", http.StatusBadRequest)
 		return
 	}
+
+	//cria o usuario no firebase Authentication, separado do banco padrao, para seguranca da senha
+	params := (&auth.UserToCreate{}).
+		Email(cliente.Email).
+		Password(cliente.Senha).
+		DisplayName(cliente.Nome)
+	userRecord, err := h.auth.CreateUser(r.Context(), params)
+	if err != nil {
+		http.Error(w, "Erro ao criar credenciais de autenticação", http.StatusInternalServerError)
+		return
+	}
+
+	//o ID sera igual nos 2 "bancos"
+	cliente.ID = userRecord.UID
 
 	//checa se nao deu erro no salvamento do cliente e cria a entrada no bd
 	doc, _, err := h.db.Collection("clientes").Add(r.Context(), cliente)

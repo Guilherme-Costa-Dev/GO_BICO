@@ -7,10 +7,11 @@ import (
 
 	"cloud.google.com/go/firestore"
 	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
 	"google.golang.org/api/option"
 )
 
-func InitFirestore(ctx context.Context, serviceAccountPath string) (*firestore.Client, error) {
+func InitFirebase(ctx context.Context, serviceAccountPath string) (*firestore.Client, *auth.Client, error) {
 	opt := option.WithCredentialsFile(serviceAccountPath)
 
 	appConfig := &firebase.Config{
@@ -19,14 +20,19 @@ func InitFirestore(ctx context.Context, serviceAccountPath string) (*firestore.C
 
 	app, err := firebase.NewApp(ctx, appConfig, opt)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao inicializar app do firebase: %w", err)
+		return nil, nil, fmt.Errorf("erro ao inicializar app do firebase: %w", err)
 	}
 
-	client, err := app.Firestore(ctx)
+	firestoreClient, err := app.Firestore(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao conectar ao firestore: %w", err)
+		return nil, nil, fmt.Errorf("erro ao conectar ao firestore: %w", err)
 	}
 
-	log.Println("Conexão com Firebase Firestore realizada com sucesso!")
-	return client, nil
+	authClient, err := app.Auth(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("erro ao conectar ao firebase auth: %w", err)
+	}
+
+	log.Println("Conexão com Firebase Firestore e Auth realizada com sucesso!")
+	return firestoreClient, authClient, nil
 }

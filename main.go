@@ -12,7 +12,8 @@ import (
 func main() {
 	ctx := context.Background()
 
-	db, err := config.InitFirestore(ctx, "serviceAccountKey.json")
+	//Inicia o bd e o auth de senha
+	db, authClient, err := config.InitFirebase(ctx, "serviceAccountKey.json")
 
 	if err != nil {
 		log.Fatal(err)
@@ -20,7 +21,8 @@ func main() {
 
 	defer db.Close()
 
-	userHandler := handler.NewUserHandler(db)
+	//Passa os dois clientes para o handler
+	userHandler := handler.NewUserHandler(db, authClient)
 
 	http.HandleFunc("/CadastrarCliente", userHandler.CreateCliente)
 
