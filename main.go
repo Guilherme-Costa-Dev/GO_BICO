@@ -25,6 +25,7 @@ func main() {
 	userHandler := handler.NewUserHandler(db, authClient)
 
 	http.HandleFunc("/CadastrarCliente", userHandler.CreateCliente)
+	http.HandleFunc("/CadastrarPrestador", userHandler.CreatePrestador)
 
 	log.Println("Servidor rodando em http://localhost:8080")
 

@@ -47,17 +47,59 @@ func (h *UserHandler) CreateCliente(w http.ResponseWriter, r *http.Request) {
 	//o ID sera igual nos 2 "bancos"
 	cliente.ID = userRecord.UID
 
-	//checa se nao deu erro no salvamento do cliente e cria a entrada no bd
-	doc, _, err := h.db.Collection("clientes").Add(r.Context(), cliente)
+	// Cria a entrada no Firestore.
+	_, err = h.db.Collection("clientes").Doc(userRecord.UID).Set(r.Context(), cliente)
 	if err != nil {
-		http.Error(w, "Erro ao salvar usuario", http.StatusInternalServerError)
+		http.Error(w, "Erro ao salvar cliente", http.StatusInternalServerError)
 		return
 	}
-
-	cliente.ID = doc.ID
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(cliente)
+}
+
+func (h *UserHandler) CreatePrestador(w http.ResponseWriter, r *http.Request) {
+	var prestador domain.Prestador
+
+	// checa se nao tem erros no JSON recebido e traduz em struct
+	err := json.NewDecoder(r.Body).Decode(&prestador)
+	if err != nil {
+		http.Error(w, "JSON invalido", http.StatusBadRequest)
+		return
+	}
+
+	// cria o usuario no firebase Authentication, separado do banco padrao, para seguranca da senha
+	params := (&auth.UserToCreate{}).
+		Email(prestador.Email).
+		Password(prestador.Senha).
+		DisplayName(prestador.Nome)
+
+	userRecord, err := h.auth.CreateUser(r.Context(), params)
+	if err != nil {
+		http.Error(w, "Erro ao criar credenciais de autenticação", http.StatusInternalServerError)
+		return
+	}
+
+	// o ID sera igual nos 2 "bancos"
+	prestador.ID = userRecord.UID
+
+	// Inicializa o slice de fotos de serviços como vazio (evita que fique como 'null' no JSON de resposta)
+	if prestador.FotosServicos == nil {
+		prestador.FotosServicos = []string{}
+	}
+
+	// Cria a entrada no Firestore.
+	_, err = h.db.Collection("prestadores").Doc(userRecord.UID).Set(r.Context(), prestador)
+	if err != nil {
+		http.Error(w, "Erro ao salvar prestador", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	// Retorna o objeto criado (com os campos faltantes vazios, que serão atualizados depois no app)
+	json.NewEncoder(w).Encode(prestador)
 }
