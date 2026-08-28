@@ -26,6 +26,8 @@ func main() {
 
 	http.HandleFunc("/CadastrarCliente", userHandler.CreateCliente)
 	http.HandleFunc("/CadastrarPrestador", userHandler.CreatePrestador)
+	http.HandleFunc("/DadosUsuario", userHandler.GetDadosUsuario)
+	http.HandleFunc("/AtualizarUsuario", userHandler.AtualizarUsuario)
 
 	log.Println("Servidor rodando em http://localhost:8080")
 
