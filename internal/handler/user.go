@@ -39,7 +39,7 @@ func (h *UserHandler) CreateCliente(w http.ResponseWriter, r *http.Request) {
 		DisplayName(cliente.Nome)
 	userRecord, err := h.auth.CreateUser(r.Context(), params)
 	if err != nil {
-		http.Error(w, "Erro ao criar credenciais de autenticação", http.StatusInternalServerError)
+		http.Error(w, "Erro ao criar credenciais de autenticação: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (h *UserHandler) CreatePrestador(w http.ResponseWriter, r *http.Request) {
 
 	userRecord, err := h.auth.CreateUser(r.Context(), params)
 	if err != nil {
-		http.Error(w, "Erro ao criar credenciais de autenticação", http.StatusInternalServerError)
+		http.Error(w, "Erro ao criar credenciais de autenticação: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -119,6 +119,7 @@ func (h *UserHandler) GetDadosUsuario(w http.ResponseWriter, r *http.Request) {
 		var cliente domain.Cliente
 		// Converte os dados do Firestore para a struct Cliente
 		if err := docCliente.DataTo(&cliente); err == nil {
+			cliente.ID = uid
 			json.NewEncoder(w).Encode(cliente)
 			return
 		}
@@ -130,6 +131,7 @@ func (h *UserHandler) GetDadosUsuario(w http.ResponseWriter, r *http.Request) {
 		var prestador domain.Prestador
 		// Converte os dados do Firestore para a struct Prestador
 		if err := docPrestador.DataTo(&prestador); err == nil {
+			prestador.ID = uid
 			json.NewEncoder(w).Encode(prestador)
 			return
 		}

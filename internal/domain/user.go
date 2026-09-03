@@ -7,6 +7,7 @@ type UserBase struct {
 	Email string `json:"email" firestore:"email"`
 	//senha é recebida mas não é salva no banco
 	Senha string `json:"senha,omitempty" firestore:"-"`
+	Tipo  string `json:"tipo" firestore:"tipo"`
 }
 
 type Cliente struct {
