@@ -33,6 +33,6 @@ func InitFirebase(ctx context.Context, serviceAccountPath string) (*firestore.Cl
 		return nil, nil, fmt.Errorf("erro ao conectar ao firebase auth: %w", err)
 	}
 
-	log.Println("Conexão com Firebase Firestore e Auth realizada com sucesso!")
+	log.Println("Conexão com Firebase e Auth bem sucedida")
 	return firestoreClient, authClient, nil
 }
