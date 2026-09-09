@@ -185,3 +185,49 @@ func (h *UserHandler) AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 	//Se não achou em nenhum
 	http.Error(w, "Usuário não encontrado", http.StatusNotFound)
 }
+
+func (h *UserHandler) DeletarUsuario(w http.ResponseWriter, r *http.Request) {
+	uid := r.URL.Query().Get("id")
+	if uid == "" {
+		http.Error(w, "ID do usuário não fornecido", http.StatusBadRequest)
+		return
+	}
+
+	// Deleta o usuário do Firebase Authentication
+	err := h.auth.DeleteUser(r.Context(), uid)
+	if err != nil {
+		http.Error(w, "Erro ao deletar credenciais de autenticação: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Tenta deletar se for cliente
+	docCliente, _ := h.db.Collection("clientes").Doc(uid).Get(r.Context())
+	if docCliente.Exists() {
+		_, err := h.db.Collection("clientes").Doc(uid).Delete(r.Context())
+		if err != nil {
+			http.Error(w, "Erro ao deletar cliente", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status": "Cliente deletado com sucesso"}`))
+		return
+	}
+
+	// Se não for cliente, tenta deletar se for prestador
+	docPrestador, _ := h.db.Collection("prestadores").Doc(uid).Get(r.Context())
+	if docPrestador.Exists() {
+		_, err := h.db.Collection("prestadores").Doc(uid).Delete(r.Context())
+		if err != nil {
+			http.Error(w, "Erro ao deletar prestador", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status": "Prestador deletado com sucesso"}`))
+		return
+	}
+
+	// Se não achou em nenhum
+	http.Error(w, "Usuário não encontrado", http.StatusNotFound)
+}
