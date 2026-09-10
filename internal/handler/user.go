@@ -155,6 +155,9 @@ func (h *UserHandler) AtualizarUsuario(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Remove o ID do mapa para não salvá-lo como um campo redundante dentro do documento
+	delete(updates, "id")
+
 	//Tenta atualizar se for cliente
 	docCliente, _ := h.db.Collection("clientes").Doc(uid).Get(r.Context())
 	if docCliente.Exists() {
