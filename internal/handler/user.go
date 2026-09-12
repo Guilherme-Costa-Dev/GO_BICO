@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"bico/internal/domain"
 
@@ -234,3 +236,63 @@ func (h *UserHandler) DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 	// Se não achou em nenhum
 	http.Error(w, "Usuário não encontrado", http.StatusNotFound)
 }
+
+func (h *UserHandler) ListarPrestadores(w http.ResponseWriter, r *http.Request) {
+	tiposStr := r.URL.Query().Get("tipoServico")
+	inicioStr := r.URL.Query().Get("inicio")
+	fimStr := r.URL.Query().Get("fim")
+
+	inicio := 0
+	fim := 15
+	if inicioStr != "" && fimStr != "" {
+		var err error
+		inicio, err = strconv.Atoi(inicioStr)
+		if err != nil {
+			http.Error(w, "Parâmetro 'inicio' inválido", http.StatusBadRequest)
+			return
+		}
+		fim, err = strconv.Atoi(fimStr)
+		if err != nil {
+			http.Error(w, "Parâmetro 'fim' inválido", http.StatusBadRequest)
+			return
+		}
+	}
+
+	query := h.db.Collection("prestadores").Query
+
+	if tiposStr != "" {
+		tipos := strings.Split(tiposStr, ",")
+
+		// firebase tem um limite de apenas 10
+		if len(tipos) > 10 {
+			tipos = tipos[:10]
+		}
+		query = query.Where("tiposServico", "array-contains-any", tipos)
+	}
+
+	query = query.OrderBy("notaMedia", firestore.Desc)
+	query = query.Offset(inicio).Limit(fim)
+
+	docs, err := query.Documents(r.Context()).GetAll()
+	if err != nil {
+		http.Error(w, "Erro ao buscar prestadores: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var prestadores []domain.Prestador
+	for _, doc := range docs {
+		var p domain.Prestador
+		if err := doc.DataTo(&p); err == nil {
+			p.ID = doc.Ref.ID
+			prestadores = append(prestadores, p)
+		}
+	}
+
+	if prestadores == nil {
+		prestadores = []domain.Prestador{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(prestadores)
+}
+

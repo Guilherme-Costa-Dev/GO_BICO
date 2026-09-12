@@ -22,11 +22,15 @@ func main() {
 
 	userHandler := handler.NewUserHandler(db, authClient)
 
-	http.HandleFunc("POST /Cliente", userHandler.CreateCliente)
-	http.HandleFunc("POST /Prestador", userHandler.CreatePrestador)
-	http.HandleFunc("GET /Usuario", userHandler.GetDadosUsuario)
-	http.HandleFunc("PUT /Usuario", userHandler.AtualizarUsuario)
-	http.HandleFunc("DELETE /Usuario", userHandler.DeletarUsuario)
+	http.HandleFunc("POST /cliente", userHandler.CreateCliente)
+	http.HandleFunc("POST /prestador", userHandler.CreatePrestador)
+
+	http.HandleFunc("GET /usuario", userHandler.GetDadosUsuario)
+	http.HandleFunc("Get /prestadores", userHandler.ListarPrestadores)
+
+	http.HandleFunc("PUT /usuario", userHandler.AtualizarUsuario)
+
+	http.HandleFunc("DELETE /usuario", userHandler.DeletarUsuario)
 
 	log.Println("Servidor rodando em http://localhost:8080")
 

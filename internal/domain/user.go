@@ -26,4 +26,6 @@ type Prestador struct {
 	FotoPaginaPerfil string   `json:"fotoPaginaPerfil" firestore:"fotoPaginaPerfil"`
 	FotosServicos    []string `json:"fotosServicos" firestore:"fotosServicos"`
 	Sobre            string   `json:"sobre" firestore:"sobre"`
+	NotaMedia        float64  `json:"notaMedia" firestore:"notaMedia"`
+	TotalAvaliacoes  int      `json:"totalAvaliacoes" firestore:"totalAvaliacoes"`
 }
