@@ -12,7 +12,6 @@ import (
 func main() {
 	ctx := context.Background()
 
-	//Inicia o bd e o auth de senha
 	db, authClient, err := config.InitFirebase(ctx, "serviceAccountKey.json")
 
 	if err != nil {
@@ -21,7 +20,6 @@ func main() {
 
 	defer db.Close()
 
-	//Passa os dois clientes para o handler
 	userHandler := handler.NewUserHandler(db, authClient)
 
 	http.HandleFunc("POST /Cliente", userHandler.CreateCliente)
