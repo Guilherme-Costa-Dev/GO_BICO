@@ -20,19 +20,19 @@ func main() {
 
 	defer db.Close()
 
-	userHandler := handler.NewUserHandler(db, authClient)
+	clienteHandler := handler.NewClienteHandler(db, authClient)
+	prestadorHandler := handler.NewPrestadorHandler(db, authClient)
 
-	http.HandleFunc("POST /cliente", userHandler.CreateCliente)
-	http.HandleFunc("POST /prestador", userHandler.CreatePrestador)
+	http.HandleFunc("POST /cliente", clienteHandler.CreateCliente)
+	http.HandleFunc("GET /cliente", clienteHandler.DadosCliente)
+	http.HandleFunc("PUT /cliente", clienteHandler.AtualizarCliente)
+	http.HandleFunc("DELETE /cliente", clienteHandler.DeletarCliente)
 
-	http.HandleFunc("GET /usuario", userHandler.GetDadosUsuario)
-	http.HandleFunc("Get /prestadores", userHandler.ListarPrestadores)
-
-	http.HandleFunc("PUT /usuario", userHandler.AtualizarUsuario)
-
-	http.HandleFunc("DELETE /usuario", userHandler.DeletarUsuario)
-
-	log.Println("Servidor rodando em http://localhost:8080")
+	http.HandleFunc("POST /prestador", prestadorHandler.CreatePrestador)
+	http.HandleFunc("GET /prestador", prestadorHandler.DadosPrestador)
+	http.HandleFunc("PUT /prestador", prestadorHandler.AtualizarPrestador)
+	http.HandleFunc("DELETE /prestador", prestadorHandler.DeletarPrestador)
+	http.HandleFunc("GET /prestadores", prestadorHandler.ListarPrestadores)
 
 	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
