@@ -24,11 +24,11 @@ func main() {
 	//Passa os dois clientes para o handler
 	userHandler := handler.NewUserHandler(db, authClient)
 
-	http.HandleFunc("/CadastrarCliente", userHandler.CreateCliente)
-	http.HandleFunc("/CadastrarPrestador", userHandler.CreatePrestador)
-	http.HandleFunc("/GetDadosUsuario", userHandler.GetDadosUsuario)
-	http.HandleFunc("/AtualizarUsuario", userHandler.AtualizarUsuario)
-	http.HandleFunc("/DeletarUsuario", userHandler.DeletarUsuario)
+	http.HandleFunc("POST /Cliente", userHandler.CreateCliente)
+	http.HandleFunc("POST /Prestador", userHandler.CreatePrestador)
+	http.HandleFunc("GET /Usuario", userHandler.GetDadosUsuario)
+	http.HandleFunc("PUT /Usuario", userHandler.AtualizarUsuario)
+	http.HandleFunc("DELETE /Usuario", userHandler.DeletarUsuario)
 
 	log.Println("Servidor rodando em http://localhost:8080")
 

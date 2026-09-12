@@ -5,7 +5,8 @@ type UserBase struct {
 	Nome  string `json:"nome" firestore:"nome"`
 	Cpf   string `json:"cpf" firestore:"cpf"`
 	Email string `json:"email" firestore:"email"`
-	//senha é recebida a fim de salvar no serviço de auth
+	// senha é recebida a fim de salvar no serviço de auth.
+	// provavelmente uma implementação de cadastro diretamente pelo frontend seria melhor, mas esta funcionando
 	Senha string `json:"senha,omitempty" firestore:"-"`
 }
 
