@@ -14,7 +14,7 @@ serviceAccountKey.json
 *.out
 /bin
 server
-bico-api
+bico-go
 
 # Pastas da IDE e Sistema Operacional
 .vscode/
