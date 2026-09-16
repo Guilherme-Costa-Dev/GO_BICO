@@ -1,5 +1,5 @@
 # Bico API
-O Bico API é o backend responsável por gerenciar a plataforma de conexão entre clientes e prestadores de serviços. Construído em Go (Golang), ele utiliza o Firebase como solução de nuvem, integrando 
+O Bico API é o backend REST responsável por gerenciar a plataforma de conexão entre clientes e prestadores de serviços. Construído em Go (Golang), ele utiliza o Firebase como solução de nuvem, integrando 
 o Firestore para banco de dados NoSQL e o Firebase Authentication para o gerenciamento de credenciais dos usuários.
 
 ## Tecnologias Utilizadas
