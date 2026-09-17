@@ -15,7 +15,7 @@ O projeto segue uma arquitetura modular dividida em pacotes internos:
 
 ## Pré-requisitos
 * GO
-* Um projeto no Firebase configurado (o ID atual configurado é bico-23171).  
+* Um projeto no Firebase configurado.  
 * O arquivo de credenciais de serviço do Firebase. O arquivo JSON deve se encontrar na pasta raiz do projeto, com o nome de serviceAccountKey.json
 
 ## Modelos de Dados (Domain)
