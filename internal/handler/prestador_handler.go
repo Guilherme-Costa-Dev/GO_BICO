@@ -81,11 +81,7 @@ func (h *PrestadorHandler) DadosPrestador(w http.ResponseWriter, r *http.Request
 }
 
 func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Request) {
-	uid := r.URL.Query().Get("id")
-	if uid == "" {
-		http.Error(w, "ID do usuário não fornecido", http.StatusBadRequest)
-		return
-	}
+	uid := r.Context().Value("userUID").(string)
 
 	var updates map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
@@ -110,32 +106,23 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 }
 
 func (h *PrestadorHandler) DeletarPrestador(w http.ResponseWriter, r *http.Request) {
-	uid := r.URL.Query().Get("id")
-	if uid == "" {
-		http.Error(w, "ID do usuário não fornecido", http.StatusBadRequest)
-		return
-	}
+	uid := r.Context().Value("userUID").(string)
 
-	err := h.auth.DeleteUser(r.Context(), uid)
+	_, err := h.db.Collection("prestadores").Doc(uid).Delete(r.Context())
 	if err != nil {
-		http.Error(w, "Erro ao deletar credenciais de autenticação: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erro ao deletar prestador no banco de dados", http.StatusInternalServerError)
 		return
 	}
 
-	docPrestador, _ := h.db.Collection("prestadores").Doc(uid).Get(r.Context())
-	if docPrestador.Exists() {
-		_, err := h.db.Collection("prestadores").Doc(uid).Delete(r.Context())
-		if err != nil {
-			http.Error(w, "Erro ao deletar prestador", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "Prestador deletado com sucesso"}`))
+	err = h.auth.DeleteUser(r.Context(), uid)
+	if err != nil {
+		http.Error(w, "Erro ao deletar credenciais de autenticação", http.StatusInternalServerError)
 		return
 	}
 
-	http.Error(w, "Usuário não encontrado", http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "Prestador deletado com sucesso"}`))
 }
 
 func (h *PrestadorHandler) ListarPrestadores(w http.ResponseWriter, r *http.Request) {
@@ -178,17 +165,31 @@ func (h *PrestadorHandler) ListarPrestadores(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var prestadores []domain.Prestador
+	var prestadores []PrestadorPublico
 	for _, doc := range docs {
 		var p domain.Prestador
 		if err := doc.DataTo(&p); err == nil {
-			p.ID = doc.Ref.ID
-			prestadores = append(prestadores, p)
+			prestador := PrestadorPublico{
+				ID:               doc.Ref.ID,
+				Nome:             p.Nome,
+				TiposServico:     p.TiposServico,
+				NotaMedia:        p.NotaMedia,
+				Email:            p.Email,
+				LocalAtuacao:     p.LocalAtuacao,
+				Username:         p.Username,
+				FotoPerfil:       p.FotoPerfil,
+				FotoPaginaPerfil: p.FotoPaginaPerfil,
+				FotosServicos:    p.FotosServicos,
+				Sobre:            p.Sobre,
+				TotalAvaliacoes:  p.TotalAvaliacoes,
+			}
+			
+			prestadores = append(prestadores, prestador)
 		}
 	}
 
 	if prestadores == nil {
-		prestadores = []domain.Prestador{}
+		prestadores = []PrestadorPublico{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

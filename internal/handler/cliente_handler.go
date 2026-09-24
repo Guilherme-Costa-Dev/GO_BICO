@@ -74,11 +74,7 @@ func (h *ClienteHandler) DadosCliente(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request) {
-	uid := r.URL.Query().Get("id")
-	if uid == "" {
-		http.Error(w, "ID do usuário não fornecido", http.StatusBadRequest)
-		return
-	}
+	uid := r.Context().Value("userUID").(string)
 
 	var updates map[string]interface{}
 	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
@@ -103,30 +99,21 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 }
 
 func (h *ClienteHandler) DeletarCliente(w http.ResponseWriter, r *http.Request) {
-	uid := r.URL.Query().Get("id")
-	if uid == "" {
-		http.Error(w, "ID do usuário não fornecido", http.StatusBadRequest)
-		return
-	}
+	uid := r.Context().Value("userUID").(string)
 
-	err := h.auth.DeleteUser(r.Context(), uid)
+	_, err := h.db.Collection("clientes").Doc(uid).Delete(r.Context())
 	if err != nil {
-		http.Error(w, "Erro ao deletar credenciais de autenticação: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Erro ao deletar cliente no banco de dados", http.StatusInternalServerError)
 		return
 	}
 
-	docCliente, _ := h.db.Collection("clientes").Doc(uid).Get(r.Context())
-	if docCliente.Exists() {
-		_, err := h.db.Collection("clientes").Doc(uid).Delete(r.Context())
-		if err != nil {
-			http.Error(w, "Erro ao deletar cliente", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "Cliente deletado com sucesso"}`))
+	err = h.auth.DeleteUser(r.Context(), uid)
+	if err != nil {
+		http.Error(w, "Erro ao deletar credenciais de autenticação", http.StatusInternalServerError)
 		return
 	}
 
-	http.Error(w, "Usuário não encontrado", http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "Cliente deletado com sucesso"}`))
 }
