@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -53,11 +54,7 @@ func (h *ClienteHandler) CreateCliente(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ClienteHandler) DadosCliente(w http.ResponseWriter, r *http.Request) {
-	uid := r.URL.Query().Get("id")
-	if uid == "" {
-		http.Error(w, "ID do usuário não fornecido na requisição", http.StatusBadRequest)
-		return
-	}
+	uid := r.Context().Value("userUID").(string)
 
 	w.Header().Set("Content-Type", "application/json")
 	docCliente, err := h.db.Collection("clientes").Doc(uid).Get(r.Context())

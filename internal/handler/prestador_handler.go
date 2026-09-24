@@ -60,11 +60,7 @@ func (h *PrestadorHandler) CreatePrestador(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *PrestadorHandler) DadosPrestador(w http.ResponseWriter, r *http.Request) {
-	uid := r.URL.Query().Get("id")
-	if uid == "" {
-		http.Error(w, "ID do usuário não fornecido na requisição", http.StatusBadRequest)
-		return
-	}
+	uid := r.Context().Value("userUID").(string)
 
 	w.Header().Set("Content-Type", "application/json")
 	docPrestador, err := h.db.Collection("prestadores").Doc(uid).Get(r.Context())
@@ -183,7 +179,7 @@ func (h *PrestadorHandler) ListarPrestadores(w http.ResponseWriter, r *http.Requ
 				Sobre:            p.Sobre,
 				TotalAvaliacoes:  p.TotalAvaliacoes,
 			}
-			
+
 			prestadores = append(prestadores, prestador)
 		}
 	}
