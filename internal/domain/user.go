@@ -12,10 +12,10 @@ type UserBase struct {
 
 type Cliente struct {
 	UserBase
-	Cep         string `json:"cep" firestore:"cep"`
-	Numero      string `json:"numero" firestore:"numero"`
-	Complemento string `json:"complemento" firestore:"complemento"`
-	Favorito    string `json:"favorito" firestore:"favorito"`
+	Cep         string   `json:"cep" firestore:"cep"`
+	Numero      string   `json:"numero" firestore:"numero"`
+	Complemento string   `json:"complemento" firestore:"complemento"`
+	Favoritos   []string `json:"favorito" firestore:"favorito"`
 }
 
 type Prestador struct {
