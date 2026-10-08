@@ -32,7 +32,7 @@ func main() {
 	http.HandleFunc("GET /clientes/favoritos", middleware.Auth(authClient, clienteHandler.ListarFavoritos))
 
 	http.HandleFunc("POST /prestadores", prestadorHandler.CreatePrestador)
-	http.HandleFunc("GET /prestadores/lista", prestadorHandler.ListarPrestadores)
+	http.HandleFunc("GET /prestadores/busca", prestadorHandler.BuscarPrestadores)
 	http.HandleFunc("GET /prestadores", middleware.Auth(authClient, prestadorHandler.DadosPrestador))
 	http.HandleFunc("PUT /prestadores", middleware.Auth(authClient, prestadorHandler.AtualizarPrestador))
 	http.HandleFunc("DELETE /prestadores", middleware.Auth(authClient, prestadorHandler.DeletarPrestador))

@@ -76,3 +76,4 @@ Todas as respostas da API são devolvidas no formato `application/json`. O UID g
    * **inicio (int)**: Offset de paginação (padrão: 0).  
       * **fim (int)**: Limite de itens na página (padrão: 15).  
       * **tipoServico (string)**: Filtra prestadores por categorias específicas, separadas por vírgula (ex: `?tipoServico=Eletricista,Encanador`). Limite máximo de 10 categorias por busca.
+      * **username (string)**: Filtra prestadores pelo seu username. A filtragem é exata e CaseSensitive.

@@ -121,7 +121,8 @@ func (h *PrestadorHandler) DeletarPrestador(w http.ResponseWriter, r *http.Reque
 	w.Write([]byte(`{"status": "Prestador deletado com sucesso"}`))
 }
 
-func (h *PrestadorHandler) ListarPrestadores(w http.ResponseWriter, r *http.Request) {
+func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Request) {
+	usernameStr := r.URL.Query().Get("username")
 	tiposStr := r.URL.Query().Get("tipoServico")
 	inicioStr := r.URL.Query().Get("inicio")
 	fimStr := r.URL.Query().Get("fim")
@@ -143,6 +144,10 @@ func (h *PrestadorHandler) ListarPrestadores(w http.ResponseWriter, r *http.Requ
 	}
 
 	query := h.db.Collection("prestadores").Query
+
+	if usernameStr != "" {
+		query = query.Where("username", "==", usernameStr)
+	}
 
 	if tiposStr != "" {
 		tipos := strings.Split(tiposStr, ",")
