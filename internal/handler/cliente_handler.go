@@ -114,22 +114,11 @@ func (h *ClienteHandler) DeletarCliente(w http.ResponseWriter, r *http.Request) 
 	w.Write([]byte(`{"status": "Cliente deletado com sucesso"}`))
 }
 
-type FavoritoRequest struct {
-	ID string `json:"id"`
-}
-
 func (h *ClienteHandler) AdicionarFavorito(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
+	ID := r.URL.Query().Get("id")
 
-	var req FavoritoRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, "JSON invalido", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	if req.ID == "" {
+	if ID == "" {
 		http.Error(w, "ID nao fornecido", http.StatusBadRequest)
 		return
 	}
@@ -143,7 +132,7 @@ func (h *ClienteHandler) AdicionarFavorito(w http.ResponseWriter, r *http.Reques
 		_, err := h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
 			{
 				Path:  "favoritos",
-				Value: firestore.ArrayUnion(req.ID),
+				Value: firestore.ArrayUnion(ID),
 			},
 		})
 		if err != nil {
@@ -222,24 +211,17 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 
 func (h *ClienteHandler) DeletarFavorito(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
+	ID := r.URL.Query().Get("id")
 
-	var req FavoritoRequest
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		http.Error(w, "JSON invalido", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	if req.ID == "" {
+	if ID == "" {
 		http.Error(w, "ID nao fornecido", http.StatusBadRequest)
 		return
 	}
 
-	_, err = h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
+	_, err := h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
 		{
 			Path:  "favoritos",
-			Value: firestore.ArrayRemove(req.ID),
+			Value: firestore.ArrayRemove(ID),
 		},
 	})
 
