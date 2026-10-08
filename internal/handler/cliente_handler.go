@@ -113,3 +113,13 @@ func (h *ClienteHandler) DeletarCliente(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status": "Cliente deletado com sucesso"}`))
 }
+
+func (h *ClienteHandler) AdicionarFavorito(w http.ResponseWriter, r *http.Request) {
+	uid := r.Context().Value("userUID").(string)
+	//TODO
+}
+
+func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request) {
+	uid := r.Context().Value("userUID").(string)
+	//TODO
+}
