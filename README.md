@@ -70,7 +70,7 @@ Todas as respostas da API são devolvidas no formato `application/json`. O UID g
    * **Descrição**: Deleta a conta de autenticação e os dados do prestador no banco. O ID é obtido pelo Token.
 
 5. **Listar Prestadores**
-   * **Rota**: `GET /prestadores/lista`
+   * **Rota**: `GET /prestadores/busca`
    * **Autenticação:** Não requerida
    * **Descrição**: Retorna uma lista pública de prestadores ordenados da maior para a menor NotaMedia.
    * **inicio (int)**: Offset de paginação (padrão: 0).  
