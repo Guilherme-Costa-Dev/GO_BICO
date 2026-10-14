@@ -1,6 +1,6 @@
 package handler
 
-type PrestadorPublico struct {
+type PrestadorPublicoDTO struct {
 	ID               string   `json:"id"`
 	Nome             string   `json:"nome"`
 	TiposServico     []string `json:"tiposServico"`
