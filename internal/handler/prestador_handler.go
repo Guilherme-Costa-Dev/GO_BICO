@@ -166,11 +166,11 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var prestadores []PrestadorPublico
+	var prestadores []PrestadorPublicoDTO
 	for _, doc := range docs {
 		var p domain.Prestador
 		if err := doc.DataTo(&p); err == nil {
-			prestador := PrestadorPublico{
+			prestador := PrestadorPublicoDTO{
 				ID:               doc.Ref.ID,
 				Nome:             p.Nome,
 				TiposServico:     p.TiposServico,
@@ -190,7 +190,7 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 	}
 
 	if prestadores == nil {
-		prestadores = []PrestadorPublico{}
+		prestadores = []PrestadorPublicoDTO{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")

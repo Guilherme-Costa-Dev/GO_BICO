@@ -72,26 +72,29 @@ func (h *ClienteHandler) DadosCliente(w http.ResponseWriter, r *http.Request) {
 func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
 
-	var updates map[string]interface{}
-	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
-		http.Error(w, "JSON invalido", http.StatusBadRequest)
-		return
-	}
-	delete(updates, "id")
-
-	docCliente, _ := h.db.Collection("clientes").Doc(uid).Get(r.Context())
-	if docCliente.Exists() {
-		_, err := h.db.Collection("clientes").Doc(uid).Set(r.Context(), updates, firestore.MergeAll)
-		if err != nil {
-			http.Error(w, "Erro ao atualizar cliente", http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status": "Cliente atualizado com sucesso"}`))
+	var dto AtualizarClienteDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
-	http.Error(w, "Usuário não encontrado", http.StatusNotFound)
+	docRef := h.db.Collection("clientes").Doc(uid)
+	docCliente, err := docRef.Get(r.Context())
+	if err != nil || !docCliente.Exists() {
+		http.Error(w, "Usuário não encontrado", http.StatusNotFound)
+		return
+	}
+
+	_, err := docRef.Set(r.Context(), dto, firestore.MergeAll)
+	if err != nil {
+		http.Error(w, "Erro ao atualizar cliente", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "Cliente atualizado com sucesso"}`))
 }
 
 func (h *ClienteHandler) DeletarCliente(w http.ResponseWriter, r *http.Request) {
