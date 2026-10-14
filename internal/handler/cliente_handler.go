@@ -86,7 +86,7 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	_, err := docRef.Set(r.Context(), dto, firestore.MergeAll)
+	_, err = docRef.Set(r.Context(), dto, firestore.MergeAll)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar cliente", http.StatusInternalServerError)
 		return
@@ -164,7 +164,7 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	prestadores := []PrestadorPublico{}
+	prestadores := []PrestadorPublicoDTO{}
 
 	if len(cliente.Favoritos) > 0 {
 		var docRefs []*firestore.DocumentRef
@@ -186,7 +186,7 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 			var p domain.Prestador
 			err := doc.DataTo(&p)
 			if err == nil {
-				prestador := PrestadorPublico{
+				prestador := PrestadorPublicoDTO{
 					ID:               doc.Ref.ID,
 					Nome:             p.Nome,
 					TiposServico:     p.TiposServico,

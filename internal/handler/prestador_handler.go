@@ -93,7 +93,7 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	_, err := docRef.Set(r.Context(), dto, firestore.MergeAll)
+	_, err = docRef.Set(r.Context(), dto, firestore.MergeAll)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar prestador", http.StatusInternalServerError)
 		return
