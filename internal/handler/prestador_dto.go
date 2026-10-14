@@ -14,3 +14,14 @@ type PrestadorPublicoDTO struct {
 	Sobre            string   `json:"sobre"`
 	TotalAvaliacoes  int      `json:"totalAvaliacoes"`
 }
+
+type AtualizarPrestadorDTO struct {
+	Nome             string   `json:"nome"`
+	TiposServico     []string `json:"tiposServico"`
+	LocalAtuacao     string   `json:"localAtuacao"`
+	Username         string   `json:"username"`
+	FotoPerfil       string   `json:"fotoPerfil"`
+	FotoPaginaPerfil string   `json:"fotoPaginaPerfil"`
+	FotosServicos    []string `json:"fotosServicos"`
+	Sobre            string   `json:"sobre"`
+}
