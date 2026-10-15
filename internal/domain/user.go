@@ -28,5 +28,5 @@ type Prestador struct {
 	FotosServicos    []string `json:"fotosServicos" firestore:"fotosServicos"`
 	Sobre            string   `json:"sobre" firestore:"sobre"`
 	NotaMedia        float64  `json:"notaMedia" firestore:"notaMedia"`
-	Avaliacao 		 map[string]interface{} `firestore:"avaliacao"`
+	Avaliacoes       []string `json:"avaliacoes" firestore:"avaliacoes"`
 }

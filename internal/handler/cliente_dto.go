@@ -10,6 +10,7 @@ type AtualizarClienteDTO struct {
 
 type AdicionarFavoritoDTO struct {
 	PrestadorID string `json:"prestadorId"`
-	Nota 	 	int `json:"nota"`
-	Comentario 	string `json:"comentario"`
+	Nota        int    `json:"nota"`
+	Comentario  string `json:"comentario"`
 }
+

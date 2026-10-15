@@ -12,7 +12,8 @@ type PrestadorPublicoDTO struct {
 	FotoPaginaPerfil string   `json:"fotoPaginaPerfil"`
 	FotosServicos    []string `json:"fotosServicos"`
 	Sobre            string   `json:"sobre"`
-	TotalAvaliacoes  int      `json:"totalAvaliacoes"`
+	TotalAvaliacoes  int      `json:"TotalAvaliacoes"`
+	Avaliacoes       []string `firestore:"avaliacoes"`
 }
 
 type AtualizarPrestadorDTO struct {

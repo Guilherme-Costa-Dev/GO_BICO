@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"bico/internal/domain"
 
@@ -192,7 +193,8 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 					FotoPaginaPerfil: p.FotoPaginaPerfil,
 					FotosServicos:    p.FotosServicos,
 					Sobre:            p.Sobre,
-					TotalAvaliacoes:  p.TotalAvaliacoes,
+					TotalAvaliacoes:  len(p.Avaliacoes),
+					Avaliacoes:       p.Avaliacoes,
 				}
 				prestadores = append(prestadores, prestador)
 			}
@@ -235,16 +237,43 @@ func (h *ClienteHandler) DeletarFavorito(w http.ResponseWriter, r *http.Request)
 func (h *ClienteHandler) AdicionarAvaliacao(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
 	var dto AdicionarFavoritoDTO
+
 	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		http.Error(w, "Erro ao processar o JSON recebido: "+err.Error(), http.StatusBadRequest)
+		return
+
+	}
 
 	if dto.PrestadorID == "" {
-		http.Error(w, "ID do prestador nao fornecido", http.StatusBadRequest)
+		http.Error(w, "ID ou nota do prestador nao fornecido", http.StatusBadRequest)
 		return
 	}
 
-	_, err := h.db.Collection("prestadores").Doc(dto.PrestadorID).Update(r.Context(), []firestore.Update{
+	docCliente, err := h.db.Collection("clientes").Doc(uid).Get(r.Context())
+	if err != nil {
+		http.Error(w, "Erro ao buscar dados do usuário", http.StatusInternalServerError)
+		return
+	}
+
+	var cliente domain.Cliente
+	if err := docCliente.DataTo(&cliente); err != nil {
+		http.Error(w, "Erro ao mapear dados do usuário", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = h.db.Collection("prestadores").Doc(dto.PrestadorID).Update(r.Context(), []firestore.Update{
 		{
-			
+			Path:  "avaliacoes",
+			Value: firestore.ArrayUnion(cliente.Nome, strconv.Itoa(dto.Nota), dto.Comentario),
 		},
 	})
+	if err != nil {
+		http.Error(w, "Erro ao adicionar favorito ao prestador", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "Avaliacao adicionada com sucesso"}`))
 }

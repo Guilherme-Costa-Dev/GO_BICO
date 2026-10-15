@@ -185,7 +185,8 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 				FotoPaginaPerfil: p.FotoPaginaPerfil,
 				FotosServicos:    p.FotosServicos,
 				Sobre:            p.Sobre,
-				TotalAvaliacoes:  p.TotalAvaliacoes,
+				TotalAvaliacoes:  len(p.Avaliacoes),
+				Avaliacoes:       p.Avaliacoes,
 			}
 
 			prestadores = append(prestadores, prestador)
