@@ -8,9 +8,8 @@ type AtualizarClienteDTO struct {
 	Complemento string `json:"complemento" firestore:"complemento,omitempty"`
 }
 
-type AdicionarFavoritoDTO struct {
-	PrestadorID string `json:"prestadorId"`
+type AdicionarAvaliacaoDTO struct {
+	PrestadorID string `json:"prestadorID"`
 	Nota        int    `json:"nota"`
 	Comentario  string `json:"comentario"`
 }
-

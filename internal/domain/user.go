@@ -1,13 +1,20 @@
 package domain
 
+import "time"
+
 type UserBase struct {
 	ID    string `json:"id" firestore:"-"`
 	Nome  string `json:"nome" firestore:"nome"`
 	Cpf   string `json:"cpf" firestore:"cpf"`
 	Email string `json:"email" firestore:"email"`
-	// senha é recebida a fim de salvar no serviço de auth.
-	// provavelmente uma implementação de cadastro diretamente pelo frontend seria melhor, mas esta funcionando
 	Senha string `json:"senha,omitempty" firestore:"-"`
+}
+
+type Avaliacao struct {
+	Nome       string    `json:"nome" firestore:"nome"`
+	Nota       int       `json:"nota" firestore:"nota"`
+	Comentario string    `json:"comentario" firestore:"comentario"`
+	Data       time.Time `json:"data" firestore:"data"`
 }
 
 type Cliente struct {
@@ -15,18 +22,18 @@ type Cliente struct {
 	Cep         string   `json:"cep" firestore:"cep"`
 	Numero      string   `json:"numero" firestore:"numero"`
 	Complemento string   `json:"complemento" firestore:"complemento"`
-	Favoritos   []string `json:"favorito" firestore:"favorito"`
+	Favoritos   []string `json:"favoritos" firestore:"favoritos"`
 }
 
 type Prestador struct {
 	UserBase
-	Username         string   `json:"username" firestore:"username"`
-	TiposServico     []string `json:"tiposServico" firestore:"tiposServico"`
-	LocalAtuacao     string   `json:"localAtuacao" firestore:"localAtuacao"`
-	FotoPerfil       string   `json:"fotoPerfil" firestore:"fotoPerfil"`
-	FotoPaginaPerfil string   `json:"fotoPaginaPerfil" firestore:"fotoPaginaPerfil"`
-	FotosServicos    []string `json:"fotosServicos" firestore:"fotosServicos"`
-	Sobre            string   `json:"sobre" firestore:"sobre"`
-	NotaMedia        float64  `json:"notaMedia" firestore:"notaMedia"`
-	Avaliacoes       []string `json:"avaliacoes" firestore:"avaliacoes"`
+	Username         string      `json:"username" firestore:"username"`
+	TiposServico     []string    `json:"tiposServico" firestore:"tiposServico"`
+	LocalAtuacao     string      `json:"localAtuacao" firestore:"localAtuacao"`
+	FotoPerfil       string      `json:"fotoPerfil" firestore:"fotoPerfil"`
+	FotoPaginaPerfil string      `json:"fotoPaginaPerfil" firestore:"fotoPaginaPerfil"`
+	FotosServicos    []string    `json:"fotosServicos" firestore:"fotosServicos"`
+	Sobre            string      `json:"sobre" firestore:"sobre"`
+	NotaMedia        float64     `json:"notaMedia" firestore:"notaMedia"`
+	Avaliacoes       []Avaliacao `json:"avaliacoes" firestore:"avaliacoes"`
 }
