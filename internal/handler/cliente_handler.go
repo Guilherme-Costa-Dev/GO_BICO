@@ -119,29 +119,23 @@ func (h *ClienteHandler) DeletarCliente(w http.ResponseWriter, r *http.Request) 
 
 func (h *ClienteHandler) AdicionarFavorito(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
-	ID := r.URL.Query().Get("id")
+	prestador_ID := r.URL.Query().Get("id")
 
-	if ID == "" {
-		http.Error(w, "ID nao fornecido", http.StatusBadRequest)
+	if prestador_ID == "" {
+		http.Error(w, "ID do prestador nao fornecido", http.StatusBadRequest)
 		return
 	}
 
-	docCliente, err := h.db.Collection("clientes").Doc(uid).Get(r.Context())
+	_, err := h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
+		{
+			Path:  "favoritos",
+			Value: firestore.ArrayUnion(prestador_ID),
+		},
+	})
+
 	if err != nil {
-		http.Error(w, "Cliente não encontrado", http.StatusNotFound)
+		http.Error(w, "Erro ao adicionar favorito: "+err.Error(), http.StatusInternalServerError)
 		return
-	}
-	if docCliente.Exists() {
-		_, err := h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
-			{
-				Path:  "favoritos",
-				Value: firestore.ArrayUnion(ID),
-			},
-		})
-		if err != nil {
-			http.Error(w, "Erro ao adicionar favorito: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
