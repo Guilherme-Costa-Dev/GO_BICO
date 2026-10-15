@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"bico/internal/domain"
 
@@ -192,7 +193,8 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 					FotoPaginaPerfil: p.FotoPaginaPerfil,
 					FotosServicos:    p.FotosServicos,
 					Sobre:            p.Sobre,
-					TotalAvaliacoes:  p.TotalAvaliacoes,
+					TotalAvaliacoes:  len(p.Avaliacoes),
+					Avaliacoes:       p.Avaliacoes,
 				}
 				prestadores = append(prestadores, prestador)
 			}
@@ -230,4 +232,78 @@ func (h *ClienteHandler) DeletarFavorito(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status": "Favorito removido com sucesso"}`))
+}
+
+func (h *ClienteHandler) AdicionarAvaliacao(w http.ResponseWriter, r *http.Request) {
+	uid := r.Context().Value("userUID").(string)
+	var dto AdicionarAvaliacaoDTO
+
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		http.Error(w, "Erro ao processar o JSON recebido: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if dto.PrestadorID == "" {
+		http.Error(w, "ID ou nota do prestador nao fornecido", http.StatusBadRequest)
+		return
+	}
+
+	if dto.Nota < 0 || dto.Nota > 5 {
+		http.Error(w, "Nota invalida", http.StatusBadRequest)
+		return
+	}
+
+	docCliente, err := h.db.Collection("clientes").Doc(uid).Get(r.Context())
+	if err != nil {
+		http.Error(w, "Erro ao buscar dados do usuário", http.StatusInternalServerError)
+		return
+	}
+
+	var cliente domain.Cliente
+	err = docCliente.DataTo(&cliente)
+	if err != nil {
+		http.Error(w, "Erro ao mapear dados do usuário", http.StatusInternalServerError)
+		return
+	}
+
+	avaliacao := domain.Avaliacao{
+		Nome:       cliente.Nome,
+		Nota:       dto.Nota,
+		Comentario: dto.Comentario,
+		Data:       time.Now(),
+	}
+
+	docPrestador, err := h.db.Collection("prestadores").Doc(dto.PrestadorID).Get(r.Context())
+	if err != nil {
+		http.Error(w, "Erro ao buscar dados do prestador", http.StatusInternalServerError)
+		return
+	}
+	var prestador domain.Prestador
+	err = docPrestador.DataTo(&prestador)
+	if err != nil {
+		http.Error(w, "Erro ao mapear dados do prestador", http.StatusInternalServerError)
+		return
+	}
+
+	lenAvaliacoes := float64(len(prestador.Avaliacoes))
+	notaMedia := (float64(dto.Nota) + prestador.NotaMedia*lenAvaliacoes) / (lenAvaliacoes + 1.0)
+	_, err = h.db.Collection("prestadores").Doc(dto.PrestadorID).Update(r.Context(), []firestore.Update{
+		{
+			Path:  "avaliacoes",
+			Value: firestore.ArrayUnion(avaliacao),
+		},
+		{
+			Path:  "notaMedia",
+			Value: notaMedia,
+		},
+	})
+	if err != nil {
+		http.Error(w, "Erro ao adicionar avaliacao ao prestador", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "Avaliacao adicionada com sucesso"}`))
 }

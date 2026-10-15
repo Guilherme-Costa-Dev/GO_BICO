@@ -101,7 +101,7 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status": "Cliente atualizado com sucesso"}`))
+	w.Write([]byte(`{"status": "Prestador atualizado com sucesso"}`))
 }
 
 func (h *PrestadorHandler) DeletarPrestador(w http.ResponseWriter, r *http.Request) {
@@ -185,7 +185,8 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 				FotoPaginaPerfil: p.FotoPaginaPerfil,
 				FotosServicos:    p.FotosServicos,
 				Sobre:            p.Sobre,
-				TotalAvaliacoes:  p.TotalAvaliacoes,
+				TotalAvaliacoes:  len(p.Avaliacoes),
+				Avaliacoes:       p.Avaliacoes,
 			}
 
 			prestadores = append(prestadores, prestador)
