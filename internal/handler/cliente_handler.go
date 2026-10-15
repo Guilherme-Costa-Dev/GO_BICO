@@ -231,3 +231,20 @@ func (h *ClienteHandler) DeletarFavorito(w http.ResponseWriter, r *http.Request)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status": "Favorito removido com sucesso"}`))
 }
+
+func (h *ClienteHandler) AdicionarAvaliacao(w http.ResponseWriter, r *http.Request) {
+	uid := r.Context().Value("userUID").(string)
+	var dto AdicionarFavoritoDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+
+	if dto.PrestadorID == "" {
+		http.Error(w, "ID do prestador nao fornecido", http.StatusBadRequest)
+		return
+	}
+
+	_, err := h.db.Collection("prestadores").Doc(dto.PrestadorID).Update(r.Context(), []firestore.Update{
+		{
+			
+		},
+	})
+}
