@@ -15,8 +15,9 @@ Em todas as rotas protegidas que manipulam os dados do próprio usuário logado,
 
 ## Modelos de Dados (Domain)
 O sistema baseia-se em uma estrutura comum `UserBase` que contém ID, Nome, Cpf, Email e Senha.  
-- **Cliente**: Herda de UserBase e adiciona campos de endereço (Cep, Numero, Complemento) e uma lista de favoritos (`favorito`).  
-- **Prestador**: Herda de UserBase e adiciona o portfólio profissional, incluindo Username, TiposServico, LocalAtuacao, links para fotos (FotoPerfil, FotoPaginaPerfil, FotosServicos), um texto Sobre, NotaMedia e TotalAvaliacoes.
+- **Cliente**: Herda de UserBase e adiciona campos de endereço (Cep, Numero, Complemento) e uma lista de favoritos (`favoritos`).  
+- **Prestador**: Herda de UserBase e adiciona o portfólio profissional, incluindo Username, TiposServico, LocalAtuacao, links para fotos (FotoPerfil, FotoPaginaPerfil, FotosServicos), um texto Sobre, NotaMedia e uma lista de avaliações (`avaliacoes`).
+- **Avaliacao**: Estrutura aninhada dentro de `Prestador`, contendo `Nome` (do cliente que avaliou), `Nota`, `Comentario` e `Data`.
 
 ## Endpoints
 Todas as respostas da API são devolvidas no formato `application/json`. O UID gerado pelo Firebase Auth é utilizado como o ID principal do documento nas coleções do Firestore.
@@ -61,6 +62,15 @@ Todas as respostas da API são devolvidas no formato `application/json`. O UID g
    * **Descrição**: Remove um prestador de serviço da lista de favoritos do cliente.
    * **Parâmetro (Query):** `?id=<id_do_prestador>`
 
+8. **Adicionar Avaliação**
+   * **Rota**: `PUT /clientes/avaliacoes`
+   * **Autenticação:** Requerida (`Bearer Token`)
+   * **Descrição**: Registra a avaliação do cliente autenticado para um prestador. O nome do avaliador é obtido automaticamente do perfil do cliente, e a `NotaMedia` do prestador é recalculada considerando as avaliações já existentes.
+   * **Body (JSON):**
+      * `prestadorID` (string): UID do prestador a ser avaliado.
+      * `nota` (int): Nota de 0 a 5.
+      * `comentario` (string): Comentário da avaliação.
+
 ### Prestadores de Serviço
 
 1. **Criar Prestador**
@@ -86,7 +96,7 @@ Todas as respostas da API são devolvidas no formato `application/json`. O UID g
 5. **Listar Prestadores**
    * **Rota**: `GET /prestadores/busca`
    * **Autenticação:** Não requerida
-   * **Descrição**: Retorna uma lista pública de prestadores ordenados da maior para a menor NotaMedia.
+   * **Descrição**: Retorna uma lista pública de prestadores ordenados da maior para a menor NotaMedia. Cada item inclui a `NotaMedia`, a contagem em `TotalAvaliacoes` e a lista de avaliações (`Avaliacoes`).
    * **Parâmetros (Query):**
       * `inicio` (int): Offset de paginação (padrão: 0).  
       * `fim` (int): Limite de itens na página (padrão: 15).  
