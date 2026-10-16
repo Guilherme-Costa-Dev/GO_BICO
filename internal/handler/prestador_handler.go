@@ -128,24 +128,28 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 	usernameStr := r.URL.Query().Get("username")
 	tiposStr := r.URL.Query().Get("tipoServico")
 	inicioStr := r.URL.Query().Get("inicio")
-	fimStr := r.URL.Query().Get("fim")
+	limiteStr := r.URL.Query().Get("limite")
 
 	inicio := 0
-	fim := 15
-	if inicioStr != "" && fimStr != "" {
-		var err error
+	limite := 15
+
+	var err error
+	if inicioStr != "" {
 		inicio, err = strconv.Atoi(inicioStr)
-		if err != nil {
-			http.Error(w, "Parâmetro 'inicio' inválido", http.StatusBadRequest)
-			return
-		}
-		fim, err = strconv.Atoi(fimStr)
-		if err != nil {
-			http.Error(w, "Parâmetro 'fim' inválido", http.StatusBadRequest)
+		if err != nil || inicio < 0 {
+			http.Error(w, "Parametro 'inicio' inválido", http.StatusBadRequest)
 			return
 		}
 	}
 
+	if limiteStr != "" {
+		limite, err = strconv.Atoi(limiteStr)
+		if err != nil || limite <= 0 || limite > 100 {
+			http.Error(w, "Parametro 'limite' inválido", http.StatusBadRequest)
+			return
+		}
+	}
+	
 	query := h.db.Collection("prestadores").Query
 
 	if usernameStr != "" {
