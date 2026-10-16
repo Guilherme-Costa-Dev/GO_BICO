@@ -307,3 +307,56 @@ func (h *ClienteHandler) AdicionarAvaliacao(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status": "Avaliacao adicionada com sucesso"}`))
 }
+
+func (h *ClienteHandler) MudarEmail(w http.ResponseWriter, r *http.Request) {
+	uid := r.Context().Value("userUID").(string)
+	email := r.URL.Query().Get("email")
+
+	params := (&auth.UserToUpdate{}).Email(email)
+
+	if email == "" {
+		http.Error(w, "E-mail não fornecido", http.StatusBadRequest)
+		return
+	}
+
+	docCliente, err := h.db.Collection("clientes").Doc(uid).Get(r.Context())
+	if err != nil {
+		http.Error(w, "Erro ao buscar dados do usuário", http.StatusInternalServerError)
+		return
+	}
+	var cliente domain.Cliente
+	err = docCliente.DataTo(&cliente)
+	if err != nil {
+		http.Error(w, "Erro ao mapear dados do usuário", http.StatusInternalServerError)
+		return
+	}
+	rollbackParams := (&auth.UserToUpdate{}).Email(cliente.Email)
+
+	ctx := r.Context()
+	_, err := client.UpdateUser(ctx, uid, params)
+	if err != nil {
+		http.Error(w, "Erro ao atualizar o email no firebase auth", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
+		{
+			Path:  "email",
+			Value: email,
+		},
+	})
+	if err != nil {
+		http.Error(w, "Erro ao atualizar o email no firestore", http.StatusInternalServerError)
+
+		_, err := client.UpdateUser(ctx, uid, rollbackParams)
+		if err != nil {
+			http.Error(w, "Erro ao reverter o email do firebase auth", http.StatusInternalServerError)
+			return
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status": "Email alterado com sucesso"}`))
+}
