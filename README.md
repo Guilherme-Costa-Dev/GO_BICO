@@ -99,6 +99,6 @@ Todas as respostas da API são devolvidas no formato `application/json`. O UID g
    * **Descrição**: Retorna uma lista pública de prestadores ordenados da maior para a menor NotaMedia. Cada item inclui a `NotaMedia`, a contagem em `TotalAvaliacoes` e a lista de avaliações (`Avaliacoes`).
    * **Parâmetros (Query):**
       * `inicio` (int): Offset de paginação (padrão: 0).  
-      * `fim` (int): Limite de itens na página (padrão: 15).  
+      * `limite` (int): Limite de itens na página (padrão: 15).  
       * `tipoServico` (string): Filtra prestadores por categorias específicas, separadas por vírgula (ex: `?tipoServico=Eletricista,Encanador`). Limite máximo de 10 categorias por busca.
       * `username` (string): Filtra prestadores pelo seu username. A filtragem é exata e CaseSensitive.
