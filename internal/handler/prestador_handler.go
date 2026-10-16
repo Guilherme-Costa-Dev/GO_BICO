@@ -165,7 +165,7 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 	}
 
 	query = query.OrderBy("notaMedia", firestore.Desc)
-	query = query.Offset(inicio).Limit(fim)
+	query = query.Offset(inicio).Limit(limite)
 
 	docs, err := query.Documents(r.Context()).GetAll()
 	if err != nil {
