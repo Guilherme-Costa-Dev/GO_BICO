@@ -333,7 +333,7 @@ func (h *ClienteHandler) MudarEmail(w http.ResponseWriter, r *http.Request) {
 	rollbackParams := (&auth.UserToUpdate{}).Email(cliente.Email)
 
 	ctx := r.Context()
-	_, err := client.UpdateUser(ctx, uid, params)
+	_, err = h.auth.UpdateUser(ctx, uid, params)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar o email no firebase auth", http.StatusInternalServerError)
 		return
@@ -348,7 +348,7 @@ func (h *ClienteHandler) MudarEmail(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Erro ao atualizar o email no firestore", http.StatusInternalServerError)
 
-		_, err := client.UpdateUser(ctx, uid, rollbackParams)
+		_, err := h.auth.UpdateUser(ctx, uid, rollbackParams)
 		if err != nil {
 			http.Error(w, "Erro ao reverter o email do firebase auth", http.StatusInternalServerError)
 			return
