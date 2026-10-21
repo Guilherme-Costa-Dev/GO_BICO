@@ -71,6 +71,12 @@ Todas as respostas da API são devolvidas no formato `application/json`. O UID g
       * `nota` (int): Nota de 0 a 5.
       * `comentario` (string): Comentário da avaliação.
 
+9. **Atualizar Email**
+   * **Rota**: `PUT /clientes/email`
+   * **Autenticação:** Requerida (`Bearer Token`)
+   * **Descrição**: Atualiza o email do cliente do firestore e do firebase auth
+   * **Parâmetro (Query):** `?email=<email_novo>`
+
 ### Prestadores de Serviço
 
 1. **Criar Prestador**
@@ -102,3 +108,9 @@ Todas as respostas da API são devolvidas no formato `application/json`. O UID g
       * `limite` (int): Limite de itens na página (padrão: 15).  
       * `tipoServico` (string): Filtra prestadores por categorias específicas, separadas por vírgula (ex: `?tipoServico=Eletricista,Encanador`). Limite máximo de 10 categorias por busca.
       * `username` (string): Filtra prestadores pelo seu username. A filtragem é exata e CaseSensitive.
+
+6. **Atualizar Email**
+   * **Rota**: `PUT /prestadores/email`
+   * **Autenticação:** Requerida (`Bearer Token`)
+   * **Descrição**: Atualiza o email do prestador do firestore e do firebase auth
+   * **Parâmetro (Query):** `?email=<email_novo>`
