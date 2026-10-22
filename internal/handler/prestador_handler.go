@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"bico/internal/domain"
+	"bico/internal/utils"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/v4/auth"
@@ -47,6 +48,14 @@ func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request
 	if prestador.FotosServicos == nil {
 		prestador.FotosServicos = []string{}
 	}
+
+	lat, lng, err := utils.buscarCoordPorCep(prestador.LocalAtuacao)
+	if err != nil {
+		http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	prestador.Lat = lat
+	prestador.Lng = lng
 
 	_, err = h.db.Collection("prestadores").Doc(userRecord.UID).Set(r.Context(), prestador)
 	if err != nil {
