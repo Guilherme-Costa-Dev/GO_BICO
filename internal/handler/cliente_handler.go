@@ -23,7 +23,7 @@ func NewClienteHandler(db *firestore.Client, authClient *auth.Client) *ClienteHa
 	}
 }
 
-func (h *ClienteHandler) CreateCliente(w http.ResponseWriter, r *http.Request) {
+func (h *ClienteHandler) CriarCliente(w http.ResponseWriter, r *http.Request) {
 	var cliente domain.Cliente
 	err := json.NewDecoder(r.Body).Decode(&cliente)
 	if err != nil {

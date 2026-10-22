@@ -24,7 +24,7 @@ func NewPrestadorHandler(db *firestore.Client, authClient *auth.Client) *Prestad
 	}
 }
 
-func (h *PrestadorHandler) CreatePrestador(w http.ResponseWriter, r *http.Request) {
+func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request) {
 	var prestador domain.Prestador
 	err := json.NewDecoder(r.Body).Decode(&prestador)
 	if err != nil {

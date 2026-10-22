@@ -24,7 +24,7 @@ func main() {
 	clienteHandler := handler.NewClienteHandler(db, authClient)
 	prestadorHandler := handler.NewPrestadorHandler(db, authClient)
 
-	http.HandleFunc("POST /clientes", clienteHandler.CreateCliente)
+	http.HandleFunc("POST /clientes", clienteHandler.CriarCliente)
 	http.HandleFunc("GET /clientes", middleware.Auth(authClient, clienteHandler.DadosCliente))
 	http.HandleFunc("PUT /clientes", middleware.Auth(authClient, clienteHandler.AtualizarCliente))
 	http.HandleFunc("DELETE /clientes", middleware.Auth(authClient, clienteHandler.DeletarCliente))
@@ -34,7 +34,7 @@ func main() {
 	http.HandleFunc("PUT /clientes/avaliacoes", middleware.Auth(authClient, clienteHandler.AdicionarAvaliacao))
 	http.HandleFunc("PUT /clientes/email", middleware.Auth(authClient, clienteHandler.MudarEmail))
 
-	http.HandleFunc("POST /prestadores", prestadorHandler.CreatePrestador)
+	http.HandleFunc("POST /prestadores", prestadorHandler.CriarPrestador)
 	http.HandleFunc("GET /prestadores/busca", prestadorHandler.BuscarPrestadores)
 	http.HandleFunc("GET /prestadores", middleware.Auth(authClient, prestadorHandler.DadosPrestador))
 	http.HandleFunc("PUT /prestadores", middleware.Auth(authClient, prestadorHandler.AtualizarPrestador))
