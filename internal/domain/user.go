@@ -6,6 +6,7 @@ type UserBase struct {
 	ID    string `json:"id" firestore:"-"`
 	Nome  string `json:"nome" firestore:"nome"`
 	Cpf   string `json:"cpf" firestore:"cpf"`
+	Cep   string `json:"cep" firestore:"cep"`
 	Email string `json:"email" firestore:"email"`
 	Senha string `json:"senha,omitempty" firestore:"-"`
 }
@@ -19,7 +20,6 @@ type Avaliacao struct {
 
 type Cliente struct {
 	UserBase
-	Cep         string   `json:"cep" firestore:"cep"`
 	Numero      string   `json:"numero" firestore:"numero"`
 	Complemento string   `json:"complemento" firestore:"complemento"`
 	Favoritos   []string `json:"favoritos" firestore:"favoritos"`

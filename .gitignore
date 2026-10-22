@@ -1,4 +1,4 @@
-# Credenciais secretas e variáveis de ambiente (NUNCA ENVIAR PARA O GIT)
+# Credenciais secretas e variáveis de ambiente
 serviceAccountKey.json
 *.json
 .env

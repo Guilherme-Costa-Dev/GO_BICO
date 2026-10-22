@@ -25,6 +25,7 @@ type AtualizarPrestadorDTO struct {
 	TiposServico     []string `json:"tiposServico"`
 	LocalAtuacao     string   `json:"localAtuacao"`
 	Username         string   `json:"username"`
+	Cep              string   `json:"cep"`
 	FotoPerfil       string   `json:"fotoPerfil"`
 	FotoPaginaPerfil string   `json:"fotoPaginaPerfil"`
 	FotosServicos    []string `json:"fotosServicos"`
