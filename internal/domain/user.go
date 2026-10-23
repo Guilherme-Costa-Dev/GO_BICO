@@ -3,12 +3,14 @@ package domain
 import "time"
 
 type UserBase struct {
-	ID    string `json:"id" firestore:"-"`
-	Nome  string `json:"nome" firestore:"nome"`
-	Cpf   string `json:"cpf" firestore:"cpf"`
-	Cep   string `json:"cep" firestore:"cep"`
-	Email string `json:"email" firestore:"email"`
-	Senha string `json:"senha,omitempty" firestore:"-"`
+	ID    string  `json:"id" firestore:"-"`
+	Nome  string  `json:"nome" firestore:"nome"`
+	Cpf   string  `json:"cpf" firestore:"cpf"`
+	Cep   string  `json:"cep" firestore:"cep"`
+	Lat   float64 `firestore:"lat"`
+	Lng   float64 `firestore:"lng"`
+	Email string  `json:"email" firestore:"email"`
+	Senha string  `json:"senha,omitempty" firestore:"-"`
 }
 
 type Avaliacao struct {
