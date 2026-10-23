@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"bico/internal/domain"
+	"bico/internal/dto"
+	"bico/internal/utils"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/v4/auth"
@@ -30,6 +32,14 @@ func (h *ClienteHandler) CriarCliente(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "JSON invalido", http.StatusBadRequest)
 		return
 	}
+
+	lat, lng, err := utils.BuscarCoordPorCep(cliente.Cep)
+	if err != nil {
+		http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	cliente.Lat = lat
+	cliente.Lng = lng
 
 	params := (&auth.UserToCreate{}).
 		Email(cliente.Email).
@@ -73,7 +83,7 @@ func (h *ClienteHandler) DadosCliente(w http.ResponseWriter, r *http.Request) {
 func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
 
-	var dto AtualizarClienteDTO
+	var dto dto.AtualizarClienteDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
@@ -85,6 +95,16 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 	if err != nil || !docCliente.Exists() {
 		http.Error(w, "Usuário não encontrado", http.StatusNotFound)
 		return
+	}
+
+	if dto.Cep != "" {
+		lat, lng, err := utils.BuscarCoordPorCep(dto.Cep)
+		if err != nil {
+			http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		dto.Lat = lat
+		dto.Lng = lng
 	}
 
 	_, err = docRef.Set(r.Context(), dto, firestore.MergeAll)
@@ -159,7 +179,7 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	prestadores := []PrestadorPublicoDTO{}
+	prestadores := []dto.PrestadorPublicoDTO{}
 
 	if len(cliente.Favoritos) > 0 {
 		var docRefs []*firestore.DocumentRef
@@ -181,7 +201,7 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 			var p domain.Prestador
 			err := doc.DataTo(&p)
 			if err == nil {
-				prestador := PrestadorPublicoDTO{
+				prestador := dto.PrestadorPublicoDTO{
 					ID:               doc.Ref.ID,
 					Nome:             p.Nome,
 					TiposServico:     p.TiposServico,
@@ -236,7 +256,7 @@ func (h *ClienteHandler) DeletarFavorito(w http.ResponseWriter, r *http.Request)
 
 func (h *ClienteHandler) AdicionarAvaliacao(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
-	var dto AdicionarAvaliacaoDTO
+	var dto dto.AdicionarAvaliacaoDTO
 
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
@@ -346,13 +366,12 @@ func (h *ClienteHandler) MudarEmail(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		http.Error(w, "Erro ao atualizar o email no firestore", http.StatusInternalServerError)
-
-		_, err := h.auth.UpdateUser(ctx, uid, rollbackParams)
-		if err != nil {
-			http.Error(w, "Erro ao reverter o email do firebase auth", http.StatusInternalServerError)
+		_, rollbackErr := h.auth.UpdateUser(ctx, uid, rollbackParams)
+		if rollbackErr != nil {
+			http.Error(w, "Erro ao atualizar o email no firestore e ao reverter no firebase auth", http.StatusInternalServerError)
 			return
 		}
+		http.Error(w, "Erro ao atualizar o email no firestore", http.StatusInternalServerError)
 		return
 	}
 

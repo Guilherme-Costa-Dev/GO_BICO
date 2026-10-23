@@ -22,24 +22,22 @@ type PrestadorPublicoDTO struct {
 }
 
 type AtualizarPrestadorDTO struct {
-	Nome             string   `json:"nome"`
-	TiposServico     []string `json:"tiposServico"`
-	LocalAtuacao     string   `json:"localAtuacao"`
-	Username         string   `json:"username"`
-	Cep              string   `json:"cep"`
-	FotoPerfil       string   `json:"fotoPerfil"`
-	FotoPaginaPerfil string   `json:"fotoPaginaPerfil"`
-	FotosServicos    []string `json:"fotosServicos"`
-	Sobre            string   `json:"sobre"`
+	Nome             string   `json:"nome" firestore:"nome,omitempty"`
+	TiposServico     []string `json:"tiposServico" firestore:"tiposServico,omitempty"`
+	LocalAtuacao     string   `json:"localAtuacao" firestore:"localAtuacao,omitempty"`
+	Username         string   `json:"username" firestore:"username,omitempty"`
+	Cep              string   `json:"cep" firestore:"cep,omitempty"`
+	FotoPerfil       string   `json:"fotoPerfil" firestore:"fotoPerfil,omitempty"`
+	FotoPaginaPerfil string   `json:"fotoPaginaPerfil" firestore:"fotoPaginaPerfil,omitempty"`
+	FotosServicos    []string `json:"fotosServicos" firestore:"fotosServicos,omitempty"`
+	Sobre            string   `json:"sobre" firestore:"sobre,omitempty"`
 }
 
 type BuscarPrestadorDTO struct {
-	Username  string `json:"username"`
-	Tipo      string `json:"tipo"`
-	Inicio    string `json:"inicio"`
-	Limite    string `json:"limite"`
-	Busca     string `json:"busca"`
-	IDCliente string `json:"idCliente"`
-	Raio      string `json:"raio"`
+	Username string `json:"username"`
+	Tipo     string `json:"tipo"`
+	Inicio   string `json:"inicio"`
+	Limite   string `json:"limite"`
+	Busca    string `json:"busca"`
+	Raio     string `json:"raio"`
 }
-

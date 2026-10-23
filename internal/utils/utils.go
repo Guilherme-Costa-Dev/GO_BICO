@@ -12,7 +12,7 @@ import (
 	"bico/internal/dto"
 )
 
-func buscarCoordPorCep(cep string) (float64, float64, error) {
+func BuscarCoordPorCep(cep string) (float64, float64, error) {
 	cep = strings.NewReplacer("-", "", ".", "", " ", "").Replace(cep)
 
 	client := &http.Client{Timeout: 5 * time.Second}
@@ -52,7 +52,7 @@ func buscarCoordPorCep(cep string) (float64, float64, error) {
 	return lat, lng, nil
 }
 
-func calcDistanciaPorCoord(lat1, lng1, lat2, lng2 float64) float64 {
+func CalcDistanciaPorCoord(lat1, lng1, lat2, lng2 float64) float64 {
 	const raioTerra = 6371.0
 
 	rad := func(graus float64) float64 {
@@ -66,7 +66,7 @@ func calcDistanciaPorCoord(lat1, lng1, lat2, lng2 float64) float64 {
 	return raioTerra * 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 }
 
-func ordPorDistancia(prestadores []dto.PrestadorPublicoDTO) []dto.PrestadorPublicoDTO {
+func OrdPorDistancia(prestadores []dto.PrestadorPublicoDTO) []dto.PrestadorPublicoDTO {
 	if len(prestadores) <= 1 {
 		return prestadores
 	}
@@ -85,6 +85,6 @@ func ordPorDistancia(prestadores []dto.PrestadorPublicoDTO) []dto.PrestadorPubli
 		}
 	}
 
-	resultado := append(ordPorDistancia(menores), iguais...)
-	return append(resultado, ordPorDistancia(maiores)...)
+	resultado := append(OrdPorDistancia(menores), iguais...)
+	return append(resultado, OrdPorDistancia(maiores)...)
 }
