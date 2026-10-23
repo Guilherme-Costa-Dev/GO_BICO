@@ -134,47 +134,86 @@ func (h *PrestadorHandler) DeletarPrestador(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Request) {
-	usernameStr := r.URL.Query().Get("username")
-	tiposStr := r.URL.Query().Get("tipoServico")
-	inicioStr := r.URL.Query().Get("inicio")
-	limiteStr := r.URL.Query().Get("limite")
+	var dto BuscarPrestadorDTO
+	err := json.NewDecoder(r.Body).Decode(&dto)
+	if err != nil {
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
 
 	inicio := 0
-	limite := 15
-
-	var err error
-	if inicioStr != "" {
-		inicio, err = strconv.Atoi(inicioStr)
-		if err != nil || inicio < 0 {
-			http.Error(w, "Parametro 'inicio' inválido", http.StatusBadRequest)
+	if dto.Inicio != "" {
+		v, err := strconv.Atoi(dto.Inicio)
+		if err != nil || v < 0 {
+			http.Error(w, "JSON inválido", http.StatusBadRequest)
 			return
+		}
+		inicio = v
+	}
+
+	limite := 20
+	if dto.Limite != "" {
+		v, err := strconv.Atoi(dto.Limite)
+		if err != nil || v < 0 || v > 100 {
+			http.Error(w, "JSON inválido", http.StatusBadRequest)
+			return
+		}
+		limite = v
+	}
+
+	var proximos bool = dto.Busca == "proximos"
+	var latCliente, lngCliente, raio float64
+
+	if proximos {
+		if dto.IDCliente == "" {
+			http.Error(w, "ID do cliente não fornecido", http.StatusBadRequest)
+			return
+		}
+
+		docCliente, err := h.db.Collection("clientes").Doc(dto.IDCliente).Get(r.Context())
+		if err != nil {
+			http.Error(w, "Erro ao buscar dados do usuário", http.StatusInternalServerError)
+			return
+		}
+		var cliente domain.Cliente
+		err := docCliente.DataTo(&cliente)
+		if err != nil {
+			http.Error(w, "Erro ao mapear dados do usuário", http.StatusInternalServerError)
+			return
+		}
+
+		if cliente.Lat == 0 || cliente.Lng == 0 {
+			http.Error(w, "Cliente sem localização cadastrada", http.StatusBadRequest)
+			return
+		}
+		latCliente, lngCliente = cliente.Lat, cliente.Lng
+
+		
+		raio = 10
+		if dto.Raio != "" {
+			v, err := strconv.ParseFloat(dto.Raio, 64)
+			if err != nil || v <= 0 {
+				http.Error(w, "Raio inválido", http.StatusBadRequest)
+				return
+			}
+			raio = v
 		}
 	}
 
-	if limiteStr != "" {
-		limite, err = strconv.Atoi(limiteStr)
-		if err != nil || limite <= 0 || limite > 100 {
-			http.Error(w, "Parametro 'limite' inválido", http.StatusBadRequest)
-			return
-		}
-	}
-	
 	query := h.db.Collection("prestadores").Query
 
-	if usernameStr != "" {
-		query = query.Where("username", "==", usernameStr)
+	if dto.Username != "" {
+		query = query.Where("username", "==", dto.Username)
 	}
 
-	if tiposStr != "" {
-		tipos := strings.Split(tiposStr, ",")
-		if len(tipos) > 10 {
-			tipos = tipos[:10]
-		}
-		query = query.Where("tiposServico", "array-contains-any", tipos)
+	if dto.Tipo != "" {
+		query = query.Where("tiposServico", "array-contains", dto.Tipo)
 	}
 
-	query = query.OrderBy("notaMedia", firestore.Desc)
-	query = query.Offset(inicio).Limit(limite)
+	if !proximos {
+		query = query.OrderBy("notaMedia", firestore.Desc)
+		query = query.Offset(inicio).Limit(limite)
+	}
 
 	docs, err := query.Documents(r.Context()).GetAll()
 	if err != nil {
@@ -185,7 +224,8 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 	var prestadores []PrestadorPublicoDTO
 	for _, doc := range docs {
 		var p domain.Prestador
-		if err := doc.DataTo(&p); err == nil {
+		err := doc.DataTo(&p)
+		if err == nil {
 			prestador := PrestadorPublicoDTO{
 				ID:               doc.Ref.ID,
 				Nome:             p.Nome,
@@ -202,8 +242,34 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 				Avaliacoes:       p.Avaliacoes,
 			}
 
+			if proximos {
+				if p.Lat == 0 || p.Lng == 0 {
+					continue
+				}
+				d := calcDistanciaPorCoord(latCliente, lngCliente, p.Lat, p.Lng)
+				if d > raio {
+					continue
+				}
+				prestador.DistanciaKm = d
+			}
+
 			prestadores = append(prestadores, prestador)
 		}
+	}
+
+	if proximos {
+		sort.Slice(prestadores, func(i, j int) bool {
+			return prestadores[i].DistanciaKm < prestadores[j].DistanciaKm
+		})
+
+		if inicio > len(prestadores) {
+			inicio = len(prestadores)
+		}
+		fim := inicio + limite
+		if fim > len(prestadores) {
+			fim = len(prestadores)
+		}
+		prestadores = prestadores[inicio:fim]
 	}
 
 	if prestadores == nil {

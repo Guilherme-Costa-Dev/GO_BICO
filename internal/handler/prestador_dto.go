@@ -18,6 +18,7 @@ type PrestadorPublicoDTO struct {
 	Sobre            string             `json:"sobre"`
 	TotalAvaliacoes  int                `json:"totalAvaliacoes"`
 	Avaliacoes       []domain.Avaliacao `json:"avaliacoes"`
+	DistanciaKm      float64            `json:"distanciaKm"`
 }
 
 type AtualizarPrestadorDTO struct {
@@ -30,4 +31,14 @@ type AtualizarPrestadorDTO struct {
 	FotoPaginaPerfil string   `json:"fotoPaginaPerfil"`
 	FotosServicos    []string `json:"fotosServicos"`
 	Sobre            string   `json:"sobre"`
+}
+
+type BuscarPrestadorDTO struct {
+	Username  string `json:"username"`
+	Tipo      string `json:"tipo"`
+	Inicio    string `json:"inicio"`
+	Limite    string `json:"limite"`
+	Busca     string `json:"busca"`
+	IDCliente string `json:"idCliente"`
+	Raio      string `json:"raio"`
 }
