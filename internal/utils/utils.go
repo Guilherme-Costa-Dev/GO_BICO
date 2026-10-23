@@ -3,11 +3,13 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"math"
+
+	"bico/internal/dto"
 )
 
 func buscarCoordPorCep(cep string) (float64, float64, error) {
@@ -60,6 +62,29 @@ func calcDistanciaPorCoord(lat1, lng1, lat2, lng2 float64) float64 {
 	dLat := rad(lat2 - lat1)
 	dLng := rad(lng2 - lng1)
 
-	a := math.Sin(dLat/2)*math.Sin(dLat/2)+math.Cos(rad(lat1))*math.Cos(rad(lat2))*math.Sin(dLng/2)*math.Sin(dLng/2)
+	a := math.Sin(dLat/2)*math.Sin(dLat/2) + math.Cos(rad(lat1))*math.Cos(rad(lat2))*math.Sin(dLng/2)*math.Sin(dLng/2)
 	return raioTerra * 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
+}
+
+func ordPorDistancia(prestadores []dto.PrestadorPublicoDTO) []dto.PrestadorPublicoDTO {
+	if len(prestadores) <= 1 {
+		return prestadores
+	}
+
+	n := prestadores[len(prestadores)/2].DistanciaKm
+	var menores, iguais, maiores []dto.PrestadorPublicoDTO
+
+	for _, p := range prestadores {
+		switch {
+		case p.DistanciaKm < n:
+			menores = append(menores, p)
+		case p.DistanciaKm == n:
+			iguais = append(iguais, p)
+		default:
+			maiores = append(maiores, p)
+		}
+	}
+
+	resultado := append(ordPorDistancia(menores), iguais...)
+	return append(resultado, ordPorDistancia(maiores)...)
 }

@@ -1,4 +1,4 @@
-package handler
+package dto
 
 type AtualizarClienteDTO struct {
 	Nome        string `json:"nome" firestore:"nome,omitempty"`

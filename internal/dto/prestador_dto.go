@@ -1,4 +1,4 @@
-package handler
+package dto
 
 import (
 	"bico/internal/domain"
@@ -42,3 +42,4 @@ type BuscarPrestadorDTO struct {
 	IDCliente string `json:"idCliente"`
 	Raio      string `json:"raio"`
 }
+

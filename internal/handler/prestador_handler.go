@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"bico/internal/domain"
 	"bico/internal/utils"
+	"bico/internal/dto"
 
 	"cloud.google.com/go/firestore"
 	"firebase.google.com/go/v4/auth"
@@ -88,7 +88,7 @@ func (h *PrestadorHandler) DadosPrestador(w http.ResponseWriter, r *http.Request
 func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
 
-	var dto AtualizarPrestadorDTO
+	var dto dto.AtualizarPrestadorDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
@@ -134,7 +134,7 @@ func (h *PrestadorHandler) DeletarPrestador(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Request) {
-	var dto BuscarPrestadorDTO
+	var dto dto.BuscarPrestadorDTO
 	err := json.NewDecoder(r.Body).Decode(&dto)
 	if err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
@@ -176,7 +176,7 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		var cliente domain.Cliente
-		err := docCliente.DataTo(&cliente)
+		err = docCliente.DataTo(&cliente)
 		if err != nil {
 			http.Error(w, "Erro ao mapear dados do usuário", http.StatusInternalServerError)
 			return
@@ -188,7 +188,6 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 		}
 		latCliente, lngCliente = cliente.Lat, cliente.Lng
 
-		
 		raio = 10
 		if dto.Raio != "" {
 			v, err := strconv.ParseFloat(dto.Raio, 64)
@@ -221,12 +220,12 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var prestadores []PrestadorPublicoDTO
+	var prestadores []dto.PrestadorPublicoDTO
 	for _, doc := range docs {
 		var p domain.Prestador
 		err := doc.DataTo(&p)
 		if err == nil {
-			prestador := PrestadorPublicoDTO{
+			prestador := dto.PrestadorPublicoDTO{
 				ID:               doc.Ref.ID,
 				Nome:             p.Nome,
 				TiposServico:     p.TiposServico,
@@ -256,24 +255,23 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 			prestadores = append(prestadores, prestador)
 		}
 	}
-
+	
+	ordPrestadores dto.PrestadorPublicoDTO
 	if proximos {
-		sort.Slice(prestadores, func(i, j int) bool {
-			return prestadores[i].DistanciaKm < prestadores[j].DistanciaKm
-		})
+		ordPrestadores := utils.ordPorDistancia(prestadores)
 
-		if inicio > len(prestadores) {
-			inicio = len(prestadores)
+		if inicio > len(ordPrestadores) {
+			inicio = len(ordPrestadores)
 		}
 		fim := inicio + limite
-		if fim > len(prestadores) {
-			fim = len(prestadores)
+		if fim > len(ordPrestadores) {
+			fim = len(ordPrestadores)
 		}
-		prestadores = prestadores[inicio:fim]
+		ordPrestadores = ordPrestadores[inicio:fim]
 	}
 
-	if prestadores == nil {
-		prestadores = []PrestadorPublicoDTO{}
+	if ordPrestadores == nil {
+		ordPrestadores = []dto.PrestadorPublicoDTO{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -332,3 +330,4 @@ func (h *PrestadorHandler) MudarEmail(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(`{"status": "Email alterado com sucesso"}`))
 }
+
