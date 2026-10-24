@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"bico/internal/domain"
@@ -102,6 +103,21 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	var faltando bool
+	if strings.TrimSpace(data.Nome) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Cpf) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Cep) == "" {
+		faltando = true
+	}
+	if faltando {
+		http.Error(w, "JSON faltando campos obrigatórios", http.StatusBadRequest)
+		return
+	}
+
 	docRef := h.db.Collection("clientes").Doc(uid)
 	docCliente, err := docRef.Get(r.Context())
 	if err != nil || !docCliente.Exists() {
@@ -109,32 +125,26 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if data.Cep != "" {
-		var lat, lng float64
-		if data.Cep != "" {
-			lat, lng, err = utils.BuscarCoordPorCep(data.Cep)
-			if err != nil {
-				http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-		_, err = h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
-			{
-				Path:  "lat",
-				Value: lat,
-			},
-			{
-				Path:  "lng",
-				Value: lng,
-			},
-		})
-		if err != nil {
-			http.Error(w, "Erro ao atualizar coordenadas do cliente", http.StatusInternalServerError)
-			return
-		}
+	updates := []firestore.Update{
+		{Path: "nome", Value: data.Nome},
+		{Path: "cpf", Value: data.Cpf},
+		{Path: "cep", Value: data.Cep},
+		{Path: "numero", Value: data.Numero},
+		{Path: "complemento", Value: data.Complemento},
 	}
 
-	_, err = docRef.Set(r.Context(), data, firestore.MergeAll)
+	if data.Cep != "" {
+		lat, lng, err := utils.BuscarCoordPorCep(data.Cep)
+		if err != nil {
+			http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		updates = append(updates,
+			firestore.Update{Path: "lat", Value: lat},
+			firestore.Update{Path: "lng", Value: lng})
+	}
+
+	_, err = docRef.Update(r.Context(), updates)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar cliente", http.StatusInternalServerError)
 		return

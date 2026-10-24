@@ -22,15 +22,16 @@ type PrestadorPublicoDTO struct {
 }
 
 type AtualizarPrestadorDTO struct {
-	Nome             string   `json:"nome" firestore:"nome,omitempty"`
-	TiposServico     []string `json:"tiposServico" firestore:"tiposServico,omitempty"`
-	LocalAtuacao     string   `json:"localAtuacao" firestore:"localAtuacao,omitempty"`
-	Username         string   `json:"username" firestore:"username,omitempty"`
-	Cep              string   `json:"cep" firestore:"cep,omitempty"`
-	FotoPerfil       string   `json:"fotoPerfil" firestore:"fotoPerfil,omitempty"`
-	FotoPaginaPerfil string   `json:"fotoPaginaPerfil" firestore:"fotoPaginaPerfil,omitempty"`
-	FotosServicos    []string `json:"fotosServicos" firestore:"fotosServicos,omitempty"`
-	Sobre            string   `json:"sobre" firestore:"sobre,omitempty"`
+	Nome             string   `json:"nome" firestore:"nome"`
+	TiposServico     []string `json:"tiposServico" firestore:"tiposServico"`
+	LocalAtuacao     string   `json:"localAtuacao" firestore:"localAtuacao"`
+	Username         string   `json:"username" firestore:"username"`
+	Cpf              string   `json:"cpf" firestore:"cpf"`
+	Cep              string   `json:"cep" firestore:"cep"`
+	FotoPerfil       string   `json:"fotoPerfil" firestore:"fotoPerfil"`
+	FotoPaginaPerfil string   `json:"fotoPaginaPerfil" firestore:"fotoPaginaPerfil"`
+	FotosServicos    []string `json:"fotosServicos" firestore:"fotosServicos"`
+	Sobre            string   `json:"sobre" firestore:"sobre"`
 }
 
 type BuscarPrestadorDTO struct {

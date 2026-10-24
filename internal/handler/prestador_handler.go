@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"bico/internal/domain"
 	"bico/internal/dto"
@@ -105,6 +106,24 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	var faltando bool
+	if strings.TrimSpace(data.Nome) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Cpf) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Cep) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Username) == "" {
+		faltando = true
+	}
+	if faltando {
+		http.Error(w, "JSON faltando campos obrigatórios", http.StatusBadRequest)
+		return
+	}
+
 	docRef := h.db.Collection("prestadores").Doc(uid)
 	docPrestador, err := docRef.Get(r.Context())
 	if err != nil || !docPrestador.Exists() {
@@ -112,32 +131,40 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if data.Cep != "" {
-		var lat, lng float64
-		if data.Cep != "" {
-			lat, lng, err = utils.BuscarCoordPorCep(data.Cep)
-			if err != nil {
-				http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-		_, err = h.db.Collection("prestadores").Doc(uid).Update(r.Context(), []firestore.Update{
-			{
-				Path:  "lat",
-				Value: lat,
-			},
-			{
-				Path:  "lng",
-				Value: lng,
-			},
-		})
-		if err != nil {
-			http.Error(w, "Erro ao atualizar coordenadas do prestador", http.StatusInternalServerError)
-			return
-		}
+	tiposServico := data.TiposServico
+	if tiposServico == nil {
+		tiposServico = []string{}
+	}
+	fotosServicos := data.FotosServicos
+	if fotosServicos == nil {
+		fotosServicos = []string{}
 	}
 
-	_, err = docRef.Set(r.Context(), data, firestore.MergeAll)
+	updates := []firestore.Update{
+		{Path: "nome", Value: data.Nome},
+		{Path: "tiposServico", Value: tiposServico},
+		{Path: "localAtuacao", Value: data.LocalAtuacao},
+		{Path: "username", Value: data.Username},
+		{Path: "cep", Value: data.Cep},
+		{Path: "cpf", Value: data.Cpf},
+		{Path: "fotoPerfil", Value: data.FotoPerfil},
+		{Path: "fotoPaginaPerfil", Value: data.FotoPaginaPerfil},
+		{Path: "fotosServicos", Value: fotosServicos},
+		{Path: "sobre", Value: data.Sobre},
+	}
+
+	if data.Cep != "" {
+		lat, lng, err := utils.BuscarCoordPorCep(data.Cep)
+		if err != nil {
+			http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		updates = append(updates,
+			firestore.Update{Path: "lat", Value: lat},
+			firestore.Update{Path: "lng", Value: lng})
+	}
+
+	_, err = docRef.Update(r.Context(), updates)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar prestador", http.StatusInternalServerError)
 		return

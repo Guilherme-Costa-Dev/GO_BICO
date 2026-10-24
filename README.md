@@ -88,7 +88,7 @@ Além de `UserBase`:
 |---|---|---|---|---|
 | POST | `/clientes` | Não | `CriarClienteDTO` (JSON) | Cliente criado (201) |
 | GET | `/clientes` | Sim | — | Cliente autenticado (200) |
-| PUT | `/clientes` | Sim | `AtualizarClienteDTO` (JSON, parcial) | Status (200) |
+| PUT | `/clientes` | Sim | `AtualizarClienteDTO` (JSON, substituição) | Status (200) |
 | DELETE | `/clientes` | Sim | — | Status (200) |
 | PUT | `/clientes/favoritos?id=` | Sim | Query `id` | Status (200) |
 | GET | `/clientes/favoritos` | Sim | — | `{ "favoritos": [PrestadorPublicoDTO] }` |
@@ -97,7 +97,7 @@ Além de `UserBase`:
 | PUT | `/clientes/email?email=` | Sim | Query `email` | Status (200) |
 | POST | `/prestadores` | Não | `CriarPrestadorDTO` (JSON) | Prestador criado (201) |
 | GET | `/prestadores` | Sim | — | Prestador autenticado (200) |
-| PUT | `/prestadores` | Sim | `AtualizarPrestadorDTO` (JSON, parcial) | Status (200) |
+| PUT | `/prestadores` | Sim | `AtualizarPrestadorDTO` (JSON, substituição) | Status (200) |
 | DELETE | `/prestadores` | Sim | — | Status (200) |
 | GET | `/prestadores/busca` | Sim | Query params | `[PrestadorPublicoDTO]` |
 | PUT | `/prestadores/email?email=` | Sim | Query `email` | Status (200) |
@@ -173,22 +173,25 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 
 `PUT /clientes` — **requer token**
 
-Atualização **parcial**: envie somente os campos que deseja alterar. Se `cep` for enviado, as coordenadas são recalculadas.
+**Substituição**: envie o objeto completo. Campos não enviados são gravados como vazios, e campos enviados como `""` também apagam o valor. Se `cep` vier preenchido, as coordenadas são recalculadas.
 
 **Recebe (JSON) — `AtualizarClienteDTO`:**
 
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
-| `nome` | string | não | Nome |
-| `cpf` | string | não | CPF |
-| `cep` | string | não | CEP (dispara nova geocodificação) |
+| `nome` | string | sim | Nome |
+| `cpf` | string | sim | CPF |
+| `cep` | string | sim | CEP (dispara nova geocodificação) |
 | `numero` | string | não | Número |
 | `complemento` | string | não | Complemento |
 
 ```json
 {
   "nome": "string",
-  "numero": "string"
+  "cpf": "string",
+  "cep": "string",
+  "numero": "string",
+  "complemento": "string"
 }
 ```
 
@@ -198,7 +201,7 @@ Atualização **parcial**: envie somente os campos que deseja alterar. Se `cep` 
 { "status": "Cliente atualizado com sucesso" }
 ```
 
-**Erros:** `400` JSON inválido; `401` token; `404` cliente não encontrado; `500` falha ao geocodificar ou salvar.
+**Erros:** `400` JSON inválido ou campo obrigatório vazio (`nome`, `cpf`, `cep`); `401` token; `404` cliente não encontrado; `500` falha ao geocodificar ou salvar.
 
 ---
 
@@ -422,17 +425,18 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 
 `PUT /prestadores` — **requer token**
 
-Atualização **parcial** (envie só os campos desejados). Se `cep` for enviado, o backend geocodifica novamente.
+**Substituição**: envie o objeto completo. Campos não enviados são gravados como vazios, e campos enviados como `""` também apagam o valor. Se `cep` vier preenchido, o backend geocodifica novamente.
 
 **Recebe (JSON) — `AtualizarPrestadorDTO`:**
 
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
-| `nome` | string | não | Nome |
-| `tiposServico` | []string | não | Tipos de serviço |
-| `localAtuacao` | string | não | Local de atuação |
-| `username` | string | não | Username |
-| `cep` | string | não | CEP (dispara geocodificação) |
+| `nome` | string | sim | Nome |
+| `cpf` | string | sim | CPF |
+| `tiposServico` | []string | sim | Tipos de serviço (ao menos 1) |
+| `localAtuacao` | string | sim | Local de atuação |
+| `username` | string | sim | Username |
+| `cep` | string | sim | CEP (dispara geocodificação) |
 | `fotoPerfil` | string | não | URL da foto de perfil |
 | `fotoPaginaPerfil` | string | não | URL da foto da página |
 | `fotosServicos` | []string | não | URLs das fotos de serviços |
@@ -441,6 +445,7 @@ Atualização **parcial** (envie só os campos desejados). Se `cep` for enviado,
 ```json
 {
   "nome": "string",
+  "cpf": "string",
   "tiposServico": [],
   "localAtuacao": "string",
   "username": "string",
@@ -458,7 +463,7 @@ Atualização **parcial** (envie só os campos desejados). Se `cep` for enviado,
 { "status": "Prestador atualizado com sucesso" }
 ```
 
-**Erros:** `400` JSON inválido; `401` token; `404` prestador não encontrado; `500` falha ao geocodificar/salvar.
+**Erros:** `400` JSON inválido ou campo obrigatório vazio (`nome`, `cpf`, `cep`, `username`, `localAtuacao`, `tiposServico`); `401` token; `404` prestador não encontrado; `500` falha ao geocodificar/salvar.
 
 ---
 
