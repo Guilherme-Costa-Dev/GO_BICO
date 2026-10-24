@@ -13,8 +13,8 @@ serviceAccountKey.json
 *.test
 *.out
 /bin
-server
-bico-go
+/server
+/bico-go
 
 # Pastas da IDE e Sistema Operacional
 .vscode/

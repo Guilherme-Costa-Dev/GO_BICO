@@ -6,8 +6,7 @@ import (
 	"net/http"
 
 	"bico/internal/config"
-	"bico/internal/handler"
-	"bico/internal/middleware"
+	"bico/internal/server"
 )
 
 func main() {
@@ -21,29 +20,9 @@ func main() {
 
 	defer db.Close()
 
-	clienteHandler := handler.NewClienteHandler(db, authClient)
-	prestadorHandler := handler.NewPrestadorHandler(db, authClient)
+	api := server.New(db, authClient)
 
-	http.HandleFunc("POST /clientes", clienteHandler.CriarCliente)
-	http.HandleFunc("GET /clientes", middleware.Auth(authClient, clienteHandler.DadosCliente))
-	http.HandleFunc("PUT /clientes", middleware.Auth(authClient, clienteHandler.AtualizarCliente))
-	http.HandleFunc("DELETE /clientes", middleware.Auth(authClient, clienteHandler.DeletarCliente))
-	http.HandleFunc("PUT /clientes/favoritos", middleware.Auth(authClient, clienteHandler.AdicionarFavorito))
-	http.HandleFunc("GET /clientes/favoritos", middleware.Auth(authClient, clienteHandler.ListarFavoritos))
-	http.HandleFunc("DELETE /clientes/favoritos", middleware.Auth(authClient, clienteHandler.DeletarFavorito))
-	http.HandleFunc("PUT /clientes/avaliacoes", middleware.Auth(authClient, clienteHandler.AdicionarAvaliacao))
-	http.HandleFunc("PUT /clientes/email", middleware.Auth(authClient, clienteHandler.MudarEmail))
-
-	http.HandleFunc("POST /prestadores", prestadorHandler.CriarPrestador)
-	http.HandleFunc("GET /prestadores/busca", middleware.Auth(authClient, prestadorHandler.BuscarPrestadores))
-	http.HandleFunc("GET /prestadores", middleware.Auth(authClient, prestadorHandler.DadosPrestador))
-	http.HandleFunc("PUT /prestadores", middleware.Auth(authClient, prestadorHandler.AtualizarPrestador))
-	http.HandleFunc("DELETE /prestadores", middleware.Auth(authClient, prestadorHandler.DeletarPrestador))
-	http.HandleFunc("PUT /prestadores/email", middleware.Auth(authClient, prestadorHandler.MudarEmail))
-
-	handler := middleware.Cors(http.DefaultServeMux)
-
-	err = http.ListenAndServe(":8080", handler)
+	err = http.ListenAndServe(":8080", api)
 	if err != nil {
 		log.Fatal(err)
 	}

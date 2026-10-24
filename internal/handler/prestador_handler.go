@@ -119,6 +119,12 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 	if strings.TrimSpace(data.Username) == "" {
 		faltando = true
 	}
+	if strings.TrimSpace(data.LocalAtuacao) == "" {
+		faltando = true
+	}
+	if len(data.TiposServico) == 0 {
+		faltando = true
+	}
 	if faltando {
 		http.Error(w, "JSON faltando campos obrigatórios", http.StatusBadRequest)
 		return
