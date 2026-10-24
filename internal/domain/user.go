@@ -7,8 +7,8 @@ type UserBase struct {
 	Nome  string  `json:"nome" firestore:"nome"`
 	Cpf   string  `json:"cpf" firestore:"cpf"`
 	Cep   string  `json:"cep" firestore:"cep"`
-	Lat   float64 `firestore:"lat"`
-	Lng   float64 `firestore:"lng"`
+	Lat   float64 `json:"lat" firestore:"lat"`
+	Lng   float64 `json:"lng" firestore:"lng"`
 	Email string  `json:"email" firestore:"email"`
 	Senha string  `json:"senha,omitempty" firestore:"-"`
 }

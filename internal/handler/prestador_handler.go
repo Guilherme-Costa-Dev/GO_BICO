@@ -26,25 +26,23 @@ func NewPrestadorHandler(db *firestore.Client, authClient *auth.Client) *Prestad
 }
 
 func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request) {
-	var prestador domain.Prestador
-	err := json.NewDecoder(r.Body).Decode(&prestador)
+	var data dto.CriarPrestadorDTO
+	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		http.Error(w, "JSON invalido", http.StatusBadRequest)
 		return
 	}
 
-	lat, lng, err := utils.BuscarCoordPorCep(prestador.Cep)
+	lat, lng, err := utils.BuscarCoordPorCep(data.Cep)
 	if err != nil {
 		http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	prestador.Lat = lat
-	prestador.Lng = lng
 
 	params := (&auth.UserToCreate{}).
-		Email(prestador.Email).
-		Password(prestador.Senha).
-		DisplayName(prestador.Nome)
+		Email(data.Email).
+		Password(data.Senha).
+		DisplayName(data.Nome)
 
 	userRecord, err := h.auth.CreateUser(r.Context(), params)
 	if err != nil {
@@ -52,9 +50,21 @@ func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	prestador.ID = userRecord.UID
-	if prestador.FotosServicos == nil {
-		prestador.FotosServicos = []string{}
+	prestador := domain.Prestador{
+		UserBase: domain.UserBase{
+			ID:    userRecord.UID,
+			Nome:  data.Nome,
+			Cpf:   data.Cpf,
+			Cep:   data.Cep,
+			Lat:   lat,
+			Lng:   lng,
+			Email: data.Email,
+		},
+		Username:      data.Username,
+		TiposServico:  data.TiposServico,
+		LocalAtuacao:  data.LocalAtuacao,
+		Sobre:         data.Sobre,
+		FotosServicos: []string{},
 	}
 
 	_, err = h.db.Collection("prestadores").Doc(userRecord.UID).Set(r.Context(), prestador)
@@ -102,11 +112,27 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	var lat, lng float64
 	if data.Cep != "" {
-		lat, lng, err = utils.BuscarCoordPorCep(data.Cep)
+		var lat, lng float64
+		if data.Cep != "" {
+			lat, lng, err = utils.BuscarCoordPorCep(data.Cep)
+			if err != nil {
+				http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		_, err = h.db.Collection("prestadores").Doc(uid).Update(r.Context(), []firestore.Update{
+			{
+				Path:  "lat",
+				Value: lat,
+			},
+			{
+				Path:  "lng",
+				Value: lng,
+			},
+		})
 		if err != nil {
-			http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Erro ao atualizar coordenadas do prestador", http.StatusInternalServerError)
 			return
 		}
 	}
@@ -114,20 +140,6 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 	_, err = docRef.Set(r.Context(), data, firestore.MergeAll)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar prestador", http.StatusInternalServerError)
-		return
-	}
-	_, err = h.db.Collection("prestadores").Doc(uid).Update(r.Context(), []firestore.Update{
-		{
-			Path:  "Lat",
-			Value: lat,
-		},
-		{
-			Path:  "Lng",
-			Value: lng,
-		},
-	})
-	if err != nil {
-		http.Error(w, "Erro ao atualizar coordenadas do prestador", http.StatusInternalServerError)
 		return
 	}
 

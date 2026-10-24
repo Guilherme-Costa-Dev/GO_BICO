@@ -26,32 +26,44 @@ func NewClienteHandler(db *firestore.Client, authClient *auth.Client) *ClienteHa
 }
 
 func (h *ClienteHandler) CriarCliente(w http.ResponseWriter, r *http.Request) {
-	var cliente domain.Cliente
-	err := json.NewDecoder(r.Body).Decode(&cliente)
+	var data dto.CriarClienteDTO
+	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		http.Error(w, "JSON invalido", http.StatusBadRequest)
 		return
 	}
 
-	lat, lng, err := utils.BuscarCoordPorCep(cliente.Cep)
+	lat, lng, err := utils.BuscarCoordPorCep(data.Cep)
 	if err != nil {
 		http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	cliente.Lat = lat
-	cliente.Lng = lng
 
 	params := (&auth.UserToCreate{}).
-		Email(cliente.Email).
-		Password(cliente.Senha).
-		DisplayName(cliente.Nome)
+		Email(data.Email).
+		Password(data.Senha).
+		DisplayName(data.Nome)
 	userRecord, err := h.auth.CreateUser(r.Context(), params)
 	if err != nil {
 		http.Error(w, "Erro ao criar credenciais de autenticação: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	cliente.ID = userRecord.UID
+	cliente := domain.Cliente{
+		UserBase: domain.UserBase{
+			ID:    userRecord.UID,
+			Nome:  data.Nome,
+			Cpf:   data.Cpf,
+			Cep:   data.Cep,
+			Lat:   lat,
+			Lng:   lng,
+			Email: data.Email,
+		},
+		Numero:      data.Numero,
+		Complemento: data.Complemento,
+		Favoritos:   []string{},
+	}
+
 	_, err = h.db.Collection("clientes").Doc(userRecord.UID).Set(r.Context(), cliente)
 	if err != nil {
 		http.Error(w, "Erro ao salvar cliente", http.StatusInternalServerError)
@@ -83,8 +95,8 @@ func (h *ClienteHandler) DadosCliente(w http.ResponseWriter, r *http.Request) {
 func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value("userUID").(string)
 
-	var dto dto.AtualizarClienteDTO
-	err := json.NewDecoder(r.Body).Decode(&dto)
+	var data dto.AtualizarClienteDTO
+	err := json.NewDecoder(r.Body).Decode(&data)
 	if err != nil {
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
@@ -97,17 +109,32 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if dto.Cep != "" {
-		lat, lng, err := utils.BuscarCoordPorCep(dto.Cep)
+	if data.Cep != "" {
+		var lat, lng float64
+		if data.Cep != "" {
+			lat, lng, err = utils.BuscarCoordPorCep(data.Cep)
+			if err != nil {
+				http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
+		_, err = h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
+			{
+				Path:  "lat",
+				Value: lat,
+			},
+			{
+				Path:  "lng",
+				Value: lng,
+			},
+		})
 		if err != nil {
-			http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Erro ao atualizar coordenadas do cliente", http.StatusInternalServerError)
 			return
 		}
-		dto.Lat = lat
-		dto.Lng = lng
 	}
 
-	_, err = docRef.Set(r.Context(), dto, firestore.MergeAll)
+	_, err = docRef.Set(r.Context(), data, firestore.MergeAll)
 	if err != nil {
 		http.Error(w, "Erro ao atualizar cliente", http.StatusInternalServerError)
 		return

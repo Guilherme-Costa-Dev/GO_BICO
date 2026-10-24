@@ -41,3 +41,15 @@ type BuscarPrestadorDTO struct {
 	Busca    string `json:"busca"`
 	Raio     string `json:"raio"`
 }
+
+type CriarPrestadorDTO struct {
+	Nome         string   `json:"nome"`
+	Cpf          string   `json:"cpf"`
+	Cep          string   `json:"cep"`
+	Email        string   `json:"email"`
+	Senha        string   `json:"senha"`
+	Username     string   `json:"username"`
+	TiposServico []string `json:"tiposServico"`
+	LocalAtuacao string   `json:"localAtuacao"`
+	Sobre        string   `json:"sobre"`
+}
