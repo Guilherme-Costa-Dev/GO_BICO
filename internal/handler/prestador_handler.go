@@ -64,7 +64,6 @@ func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request
 		Username:      data.Username,
 		TiposServico:  data.TiposServico,
 		LocalAtuacao:  data.LocalAtuacao,
-		Sobre:         data.Sobre,
 		FotosServicos: []string{},
 	}
 

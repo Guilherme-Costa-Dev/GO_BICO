@@ -366,7 +366,6 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 | `username` | string | sim | Nome de usuário público |
 | `tiposServico` | []string | sim | Tipos de serviço |
 | `localAtuacao` | string | sim | Local de atuação |
-| `sobre` | string | não | Texto de apresentação |
 
 ```json
 {
@@ -378,7 +377,6 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
   "username": "string",
   "tiposServico": [],
   "localAtuacao": "string",
-  "sobre": "string"
 }
 ```
 

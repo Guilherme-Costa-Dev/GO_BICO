@@ -52,5 +52,4 @@ type CriarPrestadorDTO struct {
 	Username     string   `json:"username"`
 	TiposServico []string `json:"tiposServico"`
 	LocalAtuacao string   `json:"localAtuacao"`
-	Sobre        string   `json:"sobre"`
 }
