@@ -34,6 +34,36 @@ func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	var faltando bool
+	if strings.TrimSpace(data.Nome) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Cpf) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Cep) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Email) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Senha) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.Username) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.LocalAtuacao) == "" {
+		faltando = true
+	}
+	if strings.TrimSpace(data.TiposServico[0]) == "" {
+		faltando = true
+	}
+	if faltando {
+		http.Error(w, "JSON faltando campos obrigatórios", http.StatusBadRequest)
+		return
+	}
+
 	lat, lng, err := utils.BuscarCoordPorCep(data.Cep)
 	if err != nil {
 		http.Error(w, "Erro ao buscar coordenadas do CEP: "+err.Error(), http.StatusInternalServerError)

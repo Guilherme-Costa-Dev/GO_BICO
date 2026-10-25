@@ -376,7 +376,7 @@ Cria o usu√°rio no Firebase Auth, geocodifica o CEP e salva o documento na cole√
   "senha": "string",
   "username": "string",
   "tiposServico": [],
-  "localAtuacao": "string",
+  "localAtuacao": "string"
 }
 ```
 

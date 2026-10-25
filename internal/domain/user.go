@@ -10,7 +10,6 @@ type UserBase struct {
 	Lat   float64 `json:"lat" firestore:"lat"`
 	Lng   float64 `json:"lng" firestore:"lng"`
 	Email string  `json:"email" firestore:"email"`
-	Senha string  `json:"senha,omitempty" firestore:"-"`
 }
 
 type Avaliacao struct {
