@@ -263,10 +263,11 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 
 	var proximos bool = data.Busca == "proximos"
 	var latCliente, lngCliente, raio float64
+	var calcularDistancia bool
+
+	uid := r.Context().Value("userUID").(string)
 
 	if proximos {
-		uid := r.Context().Value("userUID").(string)
-
 		docCliente, err := h.db.Collection("clientes").Doc(uid).Get(r.Context())
 		if err != nil {
 			http.Error(w, "Erro ao buscar dados do usuário", http.StatusInternalServerError)
@@ -284,6 +285,7 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		latCliente, lngCliente = cliente.Lat, cliente.Lng
+		calcularDistancia = true
 
 		raio = 10
 		if data.Raio != "" {
@@ -293,6 +295,16 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 				return
 			}
 			raio = v
+		}
+	} else {
+		docCliente, err := h.db.Collection("clientes").Doc(uid).Get(r.Context())
+		if err == nil {
+			var cliente domain.Cliente
+			err := docCliente.DataTo(&cliente)
+			if err == nil && cliente.Lat != 0 && cliente.Lng != 0 {
+				latCliente, lngCliente = cliente.Lat, cliente.Lng
+				calcularDistancia = true
+			}
 		}
 	}
 
@@ -338,7 +350,8 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 				Avaliacoes:       p.Avaliacoes,
 			}
 
-			if proximos {
+			switch {
+			case proximos:
 				if p.Lat == 0 || p.Lng == 0 {
 					continue
 				}
@@ -347,14 +360,16 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 					continue
 				}
 				prestador.DistanciaKm = d
+			case calcularDistancia && p.Lat != 0 && p.Lng != 0:
+				prestador.DistanciaKm = utils.CalcDistanciaPorCoord(latCliente, lngCliente, p.Lat, p.Lng)
 			}
 
 			prestadores = append(prestadores, prestador)
 		}
 	}
 
-	var ordPrestadores []dto.PrestadorPublicoDTO
 	if proximos {
+		var ordPrestadores []dto.PrestadorPublicoDTO
 		ordPrestadores = utils.OrdPorDistancia(prestadores)
 
 		if inicio > len(ordPrestadores) {
@@ -365,16 +380,15 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 			fim = len(ordPrestadores)
 		}
 		ordPrestadores = ordPrestadores[inicio:fim]
-	} else {
-		ordPrestadores = prestadores
+		prestadores = ordPrestadores
 	}
 
-	if ordPrestadores == nil {
-		ordPrestadores = []dto.PrestadorPublicoDTO{}
+	if prestadores == nil {
+		prestadores = []dto.PrestadorPublicoDTO{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ordPrestadores)
+	json.NewEncoder(w).Encode(prestadores)
 }
 
 func (h *PrestadorHandler) MudarEmail(w http.ResponseWriter, r *http.Request) {

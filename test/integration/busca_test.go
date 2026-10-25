@@ -171,6 +171,56 @@ func TestBuscarPrestadoresProximosRaio(t *testing.T) {
 	}
 }
 
+func TestBuscarPrestadoresPreencheDistanciaSemOrdenar(t *testing.T) {
+	c := criarCliente(t) // CEP 01001000 (São Paulo)
+
+	tipo := "teste-bico-semord-" + sufixoUnico()
+	perto := criarPrestadorComTipo(t, "01002000", tipo) // São Paulo, ~0,4 km do cliente
+	longe := criarPrestadorComTipo(t, "20040020", tipo) // Rio de Janeiro, ~357 km
+
+	definirNotaMedia(t, perto.UID, 3)
+	definirNotaMedia(t, longe.UID, 5)
+
+	rec, lista := buscarPrestadores(t, c.UID, "tipo="+url.QueryEscape(tipo)+"&inicio=0&limite=10")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("esperado 200, veio %d: %s", rec.Code, rec.Body.String())
+	}
+	if len(lista) != 2 {
+		t.Fatalf("esperado 2 prestadores, veio %d", len(lista))
+	}
+
+	// A ordenação continua sendo por notaMedia (decrescente), não por distância.
+	if lista[0].ID != longe.UID || lista[1].ID != perto.UID {
+		t.Fatalf("ordem inesperada: esperado [%s %s], veio [%s %s]",
+			longe.UID, perto.UID, lista[0].ID, lista[1].ID)
+	}
+
+	if d := lista[1].DistanciaKm; d <= 0 || d > 5 {
+		t.Errorf("distância do prestador próximo: esperado (0, 5], veio %v", d)
+	}
+	if d := lista[0].DistanciaKm; d < 300 || d > 450 {
+		t.Errorf("distância do prestador distante: esperado ~357, veio %v", d)
+	}
+}
+
+func TestBuscarPrestadoresSemLocalizacaoMantemDistanciaZero(t *testing.T) {
+	tipo := "teste-bico-semloc-" + sufixoUnico()
+	p := criarPrestadorComTipo(t, "01002000", tipo)
+
+	// UID sem documento em "clientes": a busca padrão não pode falhar nem
+	// inventar distância, apenas devolver distanciaKm zerado.
+	rec, lista := buscarPrestadores(t, p.UID, "tipo="+url.QueryEscape(tipo))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("esperado 200, veio %d: %s", rec.Code, rec.Body.String())
+	}
+	if len(lista) != 1 {
+		t.Fatalf("esperado 1 prestador, veio %d", len(lista))
+	}
+	if lista[0].DistanciaKm != 0 {
+		t.Errorf("distanciaKm: esperado 0 sem localização do cliente, veio %v", lista[0].DistanciaKm)
+	}
+}
+
 func TestBuscarPrestadoresProximosSemLocalizacao(t *testing.T) {
 	c := criarCliente(t)
 

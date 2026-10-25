@@ -487,7 +487,7 @@ Remove o documento da coleção `prestadores` e a conta no Firebase Auth.
 
 `GET /prestadores/busca` — **requer token**
 
-Retorna uma lista pública de prestadores. Sem `busca=proximos`, ordena por `notaMedia` (decrescente). Com `busca=proximos`, calcula a distância em relação ao cliente autenticado, filtra pelo raio e ordena do mais próximo para o mais distante.
+Retorna uma lista pública de prestadores. Sem `busca=proximos`, ordena por `notaMedia` (decrescente) e ainda calcula `distanciaKm` em relação ao cliente autenticado, quando ele tem localização cadastrada. Com `busca=proximos`, filtra pelo raio e ordena do mais próximo para o mais distante.
 
 **Recebe (query params) — `BuscarPrestadorDTO`:**
 
@@ -512,7 +512,7 @@ GET /prestadores/busca?busca=proximos&raio=<raio>&inicio=0&limite=20
 Authorization: Bearer <token>
 ```
 
-> Em `busca=proximos`, o cliente é identificado pelo **UID do token**; o cliente precisa ter `lat`/`lng` (obtidos no cadastro via CEP).
+> Em `busca=proximos`, o cliente é identificado pelo **UID do token**; o cliente precisa ter `lat`/`lng` (obtidos no cadastro via CEP). Na busca padrão a localização é opcional: se existir, apenas preenche `distanciaKm`; se não existir, o campo fica `0` e a busca funciona normalmente.
 
 **Devolve:** `200 OK` com um array de `PrestadorPublicoDTO`:
 
@@ -544,7 +544,7 @@ Authorization: Bearer <token>
 ]
 ```
 
-> `distanciaKm` é `0` quando a busca **não** é por proximidade.
+> `distanciaKm` é preenchido sempre que o cliente autenticado e o prestador têm `lat`/`lng` cadastrados — inclusive na busca padrão, que **continua ordenada por `notaMedia`**. Fica `0` apenas quando a localização de um dos dois é desconhecida (por exemplo, quando quem chama a busca não tem documento na coleção `clientes`).
 
 **Erros:** `400` `inicio`/`limite`/`raio` inválidos, `busca=proximos` sem localização do cliente; `401` token; `500` falha na consulta.
 
