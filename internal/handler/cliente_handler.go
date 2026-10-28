@@ -205,7 +205,13 @@ func (h *ClienteHandler) AdicionarFavorito(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	_, err := h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
+	_, err := h.db.Collection("prestadores").Doc(prestador_ID).Get(r.Context())
+	if err != nil {
+		http.Error(w, "Prestador não encontrado", http.StatusNotFound)
+		return
+	}
+
+	_, err = h.db.Collection("clientes").Doc(uid).Update(r.Context(), []firestore.Update{
 		{
 			Path:  "favoritos",
 			Value: firestore.ArrayUnion(prestador_ID),
