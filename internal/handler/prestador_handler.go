@@ -81,6 +81,8 @@ func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	data.Username = strings.ToLower(strings.TrimSpace(data.Username))
+
 	prestador := domain.Prestador{
 		UserBase: domain.UserBase{
 			ID:    userRecord.UID,
@@ -174,6 +176,8 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 	if fotosServicos == nil {
 		fotosServicos = []string{}
 	}
+
+	data.Username = strings.ToLower(strings.TrimSpace(data.Username))
 
 	updates := []firestore.Update{
 		{Path: "nome", Value: data.Nome},
