@@ -7,6 +7,7 @@ import (
 type PrestadorPublicoDTO struct {
 	ID               string             `json:"id"`
 	Nome             string             `json:"nome"`
+	Telefone         string             `json:"telefone"`
 	TiposServico     []string           `json:"tiposServico"`
 	NotaMedia        float64            `json:"notaMedia"`
 	Email            string             `json:"email"`
@@ -23,6 +24,7 @@ type PrestadorPublicoDTO struct {
 
 type AtualizarPrestadorDTO struct {
 	Nome             string   `json:"nome" firestore:"nome"`
+	Telefone         string   `json:"telefone" firestore:"telefone"`
 	TiposServico     []string `json:"tiposServico" firestore:"tiposServico"`
 	LocalAtuacao     string   `json:"localAtuacao" firestore:"localAtuacao"`
 	Username         string   `json:"username" firestore:"username"`
@@ -45,6 +47,7 @@ type BuscarPrestadorDTO struct {
 
 type CriarPrestadorDTO struct {
 	Nome         string   `json:"nome"`
+	Telefone     string   `json:"telefone"`
 	Cpf          string   `json:"cpf"`
 	Cep          string   `json:"cep"`
 	Email        string   `json:"email"`

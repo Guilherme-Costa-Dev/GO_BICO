@@ -56,7 +56,10 @@ func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request
 	if strings.TrimSpace(data.LocalAtuacao) == "" {
 		faltando = true
 	}
-	if strings.TrimSpace(data.TiposServico[0]) == "" {
+	if strings.TrimSpace(data.Telefone) == "" {
+		faltando = true
+	}
+	if len(data.TiposServico) == 0 || strings.TrimSpace(data.TiposServico[0]) == "" {
 		faltando = true
 	}
 	if faltando {
@@ -94,6 +97,7 @@ func (h *PrestadorHandler) CriarPrestador(w http.ResponseWriter, r *http.Request
 			Email: data.Email,
 		},
 		Username:      data.Username,
+		Telefone:      data.Telefone,
 		TiposServico:  data.TiposServico,
 		LocalAtuacao:  data.LocalAtuacao,
 		FotosServicos: []string{},
@@ -153,7 +157,10 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 	if strings.TrimSpace(data.LocalAtuacao) == "" {
 		faltando = true
 	}
-	if len(data.TiposServico) == 0 {
+	if strings.TrimSpace(data.Telefone) == "" {
+		faltando = true
+	}
+	if len(data.TiposServico) == 0 || strings.TrimSpace(data.TiposServico[0]) == "" {
 		faltando = true
 	}
 	if faltando {
@@ -181,6 +188,7 @@ func (h *PrestadorHandler) AtualizarPrestador(w http.ResponseWriter, r *http.Req
 
 	updates := []firestore.Update{
 		{Path: "nome", Value: data.Nome},
+		{Path: "telefone", Value: data.Telefone},
 		{Path: "tiposServico", Value: tiposServico},
 		{Path: "localAtuacao", Value: data.LocalAtuacao},
 		{Path: "username", Value: data.Username},
@@ -341,6 +349,7 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 			prestador := dto.PrestadorPublicoDTO{
 				ID:               doc.Ref.ID,
 				Nome:             p.Nome,
+				Telefone:         p.Telefone,
 				TiposServico:     p.TiposServico,
 				NotaMedia:        p.NotaMedia,
 				Email:            p.Email,

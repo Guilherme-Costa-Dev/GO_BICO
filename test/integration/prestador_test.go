@@ -41,6 +41,9 @@ func TestCriarEBuscarPrestador(t *testing.T) {
 	if corpo["username"] != p.Username {
 		t.Errorf("username: esperado %q, veio %v", p.Username, corpo["username"])
 	}
+	if corpo["telefone"] != p.Telefone {
+		t.Errorf("telefone: esperado %q, veio %v", p.Telefone, corpo["telefone"])
+	}
 }
 
 func TestAtualizarPrestadorSubstituicao(t *testing.T) {
@@ -48,6 +51,7 @@ func TestAtualizarPrestadorSubstituicao(t *testing.T) {
 
 	rec := chamarComo(t, prestadorH.AtualizarPrestador, http.MethodPut, "/prestadores", p.UID, map[string]any{
 		"nome":             "Prestador Renomeado",
+		"telefone":         "21988887777",
 		"cpf":              "98765432100",
 		"tiposServico":     []string{p.Tipo, "teste-bico-extra"},
 		"localAtuacao":     "Rio de Janeiro",
@@ -69,6 +73,9 @@ func TestAtualizarPrestadorSubstituicao(t *testing.T) {
 	if salvo.Cpf != "98765432100" {
 		t.Errorf("cpf: esperado %q, veio %q", "98765432100", salvo.Cpf)
 	}
+	if salvo.Telefone != "21988887777" {
+		t.Errorf("telefone: esperado %q, veio %q", "21988887777", salvo.Telefone)
+	}
 	if salvo.LocalAtuacao != "Rio de Janeiro" {
 		t.Errorf("localAtuacao: veio %q", salvo.LocalAtuacao)
 	}
@@ -89,6 +96,7 @@ func TestAtualizarPrestadorObrigatorios(t *testing.T) {
 	completo := func() map[string]any {
 		return map[string]any{
 			"nome":             "Prestador Teste",
+			"telefone":         p.Telefone,
 			"cpf":              "12345678900",
 			"tiposServico":     []string{p.Tipo},
 			"localAtuacao":     "São Paulo",
@@ -103,6 +111,7 @@ func TestAtualizarPrestadorObrigatorios(t *testing.T) {
 
 	casos := map[string]func(map[string]any){
 		"nome":         func(c map[string]any) { c["nome"] = "" },
+		"telefone":     func(c map[string]any) { c["telefone"] = "" },
 		"cpf":          func(c map[string]any) { c["cpf"] = "" },
 		"cep":          func(c map[string]any) { c["cep"] = "" },
 		"username":     func(c map[string]any) { c["username"] = "" },

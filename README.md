@@ -61,6 +61,7 @@ Além de `UserBase`:
 
 | Campo | Tipo | Firestore |
 |---|---|---|
+| `telefone` | string | `telefone` |
 | `username` | string | `username` |
 | `tiposServico` | []string | `tiposServico` |
 | `localAtuacao` | string | `localAtuacao` |
@@ -257,6 +258,7 @@ Busca os documentos dos prestadores favoritados e devolve o perfil público de c
     {
       "id": "<uid>",
       "nome": "string",
+      "telefone": "string",
       "tiposServico": [],
       "notaMedia": 0,
       "email": "string",
@@ -359,6 +361,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
 | `nome` | string | sim | Nome |
+| `telefone` | string | sim | Telefone de contato |
 | `cpf` | string | sim | CPF |
 | `cep` | string | sim | CEP (usado para latitude/longitude) |
 | `email` | string | sim | E-mail (Firebase Auth) |
@@ -370,6 +373,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 ```json
 {
   "nome": "string",
+  "telefone": "string",
   "cpf": "string",
   "cep": "string",
   "email": "string",
@@ -391,6 +395,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
   "lat": 0,
   "lng": 0,
   "email": "string",
+  "telefone": "string",
   "username": "string",
   "tiposServico": [],
   "localAtuacao": "string",
@@ -430,6 +435,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 | Campo | Tipo | Obrigatório | Descrição |
 |---|---|---|---|
 | `nome` | string | sim | Nome |
+| `telefone` | string | sim | Telefone de contato |
 | `cpf` | string | sim | CPF |
 | `tiposServico` | []string | sim | Tipos de serviço (ao menos 1) |
 | `localAtuacao` | string | sim | Local de atuação |
@@ -443,6 +449,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 ```json
 {
   "nome": "string",
+  "telefone": "string",
   "cpf": "string",
   "tiposServico": [],
   "localAtuacao": "string",
@@ -461,7 +468,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 { "status": "Prestador atualizado com sucesso" }
 ```
 
-**Erros:** `400` JSON inválido ou campo obrigatório vazio (`nome`, `cpf`, `cep`, `username`, `localAtuacao`, `tiposServico`); `401` token; `404` prestador não encontrado; `500` falha ao geocodificar/salvar.
+**Erros:** `400` JSON inválido ou campo obrigatório vazio (`nome`, `telefone`, `cpf`, `cep`, `username`, `localAtuacao`, `tiposServico`); `401` token; `404` prestador não encontrado; `500` falha ao geocodificar/salvar.
 
 ---
 
@@ -521,6 +528,7 @@ Authorization: Bearer <token>
   {
     "id": "<uid>",
     "nome": "string",
+    "telefone": "string",
     "tiposServico": [],
     "notaMedia": 0,
     "email": "string",
@@ -578,6 +586,7 @@ Usado em `GET /prestadores/busca` e `GET /clientes/favoritos`.
 |---|---|
 | `id` | string |
 | `nome` | string |
+| `telefone` | string |
 | `tiposServico` | []string |
 | `notaMedia` | float64 |
 | `email` | string |

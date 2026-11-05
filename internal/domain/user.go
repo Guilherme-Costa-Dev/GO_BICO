@@ -28,6 +28,7 @@ type Cliente struct {
 
 type Prestador struct {
 	UserBase
+	Telefone         string      `json:"telefone" firestore:"telefone"`
 	Username         string      `json:"username" firestore:"username"`
 	TiposServico     []string    `json:"tiposServico" firestore:"tiposServico"`
 	LocalAtuacao     string      `json:"localAtuacao" firestore:"localAtuacao"`

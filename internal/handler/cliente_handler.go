@@ -268,6 +268,7 @@ func (h *ClienteHandler) ListarFavoritos(w http.ResponseWriter, r *http.Request)
 				prestador := dto.PrestadorPublicoDTO{
 					ID:               doc.Ref.ID,
 					Nome:             p.Nome,
+					Telefone:         p.Telefone,
 					TiposServico:     p.TiposServico,
 					NotaMedia:        p.NotaMedia,
 					Email:            p.Email,

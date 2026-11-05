@@ -111,6 +111,7 @@ type prestadorTeste struct {
 	Email    string
 	Username string
 	Tipo     string
+	Telefone string
 }
 
 func criarPrestador(t *testing.T, cep string) prestadorTeste {
@@ -127,6 +128,7 @@ func criarPrestadorComTipo(t *testing.T, cep, tipo string) prestadorTeste {
 
 	rec := chamarJSON(t, router, http.MethodPost, "/prestadores", "", map[string]any{
 		"nome":         "Prestador Teste",
+		"telefone":     "11999999999",
 		"cpf":          "12345678900",
 		"cep":          cep,
 		"email":        email,
@@ -150,7 +152,7 @@ func criarPrestadorComTipo(t *testing.T, cep, tipo string) prestadorTeste {
 	uid := resp.ID
 	t.Cleanup(func() { limparUsuario(t, "prestadores", uid) })
 
-	return prestadorTeste{UID: uid, Email: email, Username: username, Tipo: tipo}
+	return prestadorTeste{UID: uid, Email: email, Username: username, Tipo: tipo, Telefone: "11999999999"}
 }
 
 // limparUsuario remove os dois lados (Firestore e Auth). Ignora registros que o

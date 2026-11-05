@@ -181,7 +181,8 @@ func TestFavoritos(t *testing.T) {
 
 	var lista struct {
 		Favoritos []struct {
-			ID string `json:"id"`
+			ID       string `json:"id"`
+			Telefone string `json:"telefone"`
 		} `json:"favoritos"`
 	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &lista); err != nil {
@@ -191,6 +192,9 @@ func TestFavoritos(t *testing.T) {
 	for _, f := range lista.Favoritos {
 		if f.ID == p.UID {
 			encontrado = true
+			if f.Telefone != p.Telefone {
+				t.Errorf("telefone do favorito: esperado %q, veio %q", p.Telefone, f.Telefone)
+			}
 		}
 	}
 	if !encontrado {
