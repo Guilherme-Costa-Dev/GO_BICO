@@ -85,6 +85,9 @@ func OrdPorDistancia(prestadores []dto.PrestadorPublicoDTO) []dto.PrestadorPubli
 		}
 	}
 
-	resultado := append(OrdPorDistancia(menores), iguais...)
-	return append(resultado, OrdPorDistancia(maiores)...)
+	menores = OrdPorDistancia(menores)
+	maiores = OrdPorDistancia(maiores)
+	resultado := append(menores, iguais...)
+	resultado = append(resultado, maiores...)
+	return resultado
 }
