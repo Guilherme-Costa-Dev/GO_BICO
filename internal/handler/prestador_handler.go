@@ -320,17 +320,22 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
+	termoUsername := strings.ToLower(strings.TrimSpace(data.Username))
+	buscaPorUsername := termoUsername != ""
+
 	query := h.db.Collection("prestadores").Query
 
-	if data.Username != "" {
-		query = query.Where("username", "==", data.Username)
+	if buscaPorUsername {
+		query = query.
+			Where("username", ">=", termoUsername).
+			Where("username", "<=", termoUsername+"\uf8ff")
 	}
 
 	if data.Tipo != "" {
 		query = query.Where("tiposServico", "array-contains", data.Tipo)
 	}
 
-	if !proximos {
+	if !proximos && !buscaPorUsername {
 		query = query.OrderBy("notaMedia", firestore.Desc)
 		query = query.Offset(inicio).Limit(limite)
 	}
