@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -242,12 +243,23 @@ func (h *PrestadorHandler) DeletarPrestador(w http.ResponseWriter, r *http.Reque
 	w.Write([]byte(`{"status": "Prestador deletado com sucesso"}`))
 }
 
+type prestadorRanqueado struct {
+	prestador     dto.PrestadorPublicoDTO
+	notaPonderada float64
+}
+
 func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Request) {
+	const (
+		limitePadrao      = 20
+		limiteMaximo      = 100
+		mediaGlobalPadrao = 4.0
+	)
+
 	queryParams := r.URL.Query()
 
 	var data dto.BuscarPrestadorDTO
-	data.Username = queryParams.Get("username")
-	data.Tipo = queryParams.Get("tipo")
+	data.Termo = queryParams.Get("termo")
+	data.Tipo = strings.TrimSpace(queryParams.Get("tipo"))
 	data.Inicio = queryParams.Get("inicio")
 	data.Limite = queryParams.Get("limite")
 	data.Busca = queryParams.Get("busca")
@@ -263,17 +275,17 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 		inicio = v
 	}
 
-	limite := 20
+	limite := limitePadrao
 	if data.Limite != "" {
 		v, err := strconv.Atoi(data.Limite)
-		if err != nil || v < 0 || v > 100 {
+		if err != nil || v < 0 || v > limiteMaximo {
 			http.Error(w, "JSON inválido", http.StatusBadRequest)
 			return
 		}
 		limite = v
 	}
 
-	var proximos bool = data.Busca == "proximos"
+	proximos := data.Busca == "proximos"
 	var latCliente, lngCliente, raio float64
 	var calcularDistancia bool
 
@@ -320,24 +332,9 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 		}
 	}
 
-	termoUsername := strings.ToLower(strings.TrimSpace(data.Username))
-	buscaPorUsername := termoUsername != ""
-
 	query := h.db.Collection("prestadores").Query
-
-	if buscaPorUsername {
-		query = query.
-			Where("username", ">=", termoUsername).
-			Where("username", "<=", termoUsername+"\uf8ff")
-	}
-
 	if data.Tipo != "" {
 		query = query.Where("tiposServico", "array-contains", data.Tipo)
-	}
-
-	if !proximos && !buscaPorUsername {
-		query = query.OrderBy("notaMedia", firestore.Desc)
-		query = query.Offset(inicio).Limit(limite)
 	}
 
 	docs, err := query.Documents(r.Context()).GetAll()
@@ -346,63 +343,106 @@ func (h *PrestadorHandler) BuscarPrestadores(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var prestadores []dto.PrestadorPublicoDTO
+	candidatos := make([]prestadorRanqueado, 0, len(docs))
+	var somaNotas float64
+	var totalAvaliados int
+
 	for _, doc := range docs {
 		var p domain.Prestador
-		err := doc.DataTo(&p)
-		if err == nil {
-			prestador := dto.PrestadorPublicoDTO{
-				ID:               doc.Ref.ID,
-				Nome:             p.Nome,
-				Telefone:         p.Telefone,
-				TiposServico:     p.TiposServico,
-				NotaMedia:        p.NotaMedia,
-				Email:            p.Email,
-				LocalAtuacao:     p.LocalAtuacao,
-				Username:         p.Username,
-				FotoPerfil:       p.FotoPerfil,
-				FotoPaginaPerfil: p.FotoPaginaPerfil,
-				FotosServicos:    p.FotosServicos,
-				Sobre:            p.Sobre,
-				TotalAvaliacoes:  len(p.Avaliacoes),
-				Avaliacoes:       p.Avaliacoes,
-			}
-
-			switch {
-			case proximos:
-				if p.Lat == 0 || p.Lng == 0 {
-					continue
-				}
-				d := utils.CalcDistanciaPorCoord(latCliente, lngCliente, p.Lat, p.Lng)
-				if d > raio {
-					continue
-				}
-				prestador.DistanciaKm = d
-			case calcularDistancia && p.Lat != 0 && p.Lng != 0:
-				prestador.DistanciaKm = utils.CalcDistanciaPorCoord(latCliente, lngCliente, p.Lat, p.Lng)
-			}
-
-			prestadores = append(prestadores, prestador)
+		if err := doc.DataTo(&p); err != nil {
+			continue
 		}
+
+		if !utils.ContemTexto(data.Termo,
+			p.Username,
+			p.Nome,
+			p.LocalAtuacao,
+			p.Sobre,
+			strings.Join(p.TiposServico, " "),
+		) {
+			continue
+		}
+
+		prestador := dto.PrestadorPublicoDTO{
+			ID:               doc.Ref.ID,
+			Nome:             p.Nome,
+			Telefone:         p.Telefone,
+			TiposServico:     p.TiposServico,
+			NotaMedia:        p.NotaMedia,
+			Email:            p.Email,
+			LocalAtuacao:     p.LocalAtuacao,
+			Username:         p.Username,
+			FotoPerfil:       p.FotoPerfil,
+			FotoPaginaPerfil: p.FotoPaginaPerfil,
+			FotosServicos:    p.FotosServicos,
+			Sobre:            p.Sobre,
+			TotalAvaliacoes:  len(p.Avaliacoes),
+			Avaliacoes:       p.Avaliacoes,
+		}
+
+		switch {
+		case proximos:
+			if p.Lat == 0 || p.Lng == 0 {
+				continue
+			}
+			d := utils.CalcDistanciaPorCoord(latCliente, lngCliente, p.Lat, p.Lng)
+			if d > raio {
+				continue
+			}
+			prestador.DistanciaKm = d
+		case calcularDistancia && p.Lat != 0 && p.Lng != 0:
+			prestador.DistanciaKm = utils.CalcDistanciaPorCoord(latCliente, lngCliente, p.Lat, p.Lng)
+		}
+
+		if prestador.TotalAvaliacoes > 0 {
+			somaNotas += prestador.NotaMedia
+			totalAvaliados++
+		}
+
+		candidatos = append(candidatos, prestadorRanqueado{prestador: prestador})
 	}
 
-	if proximos {
-		var ordPrestadores []dto.PrestadorPublicoDTO
-		ordPrestadores = utils.OrdPorDistancia(prestadores)
-
-		if inicio > len(ordPrestadores) {
-			inicio = len(ordPrestadores)
-		}
-		fim := inicio + limite
-		if fim > len(ordPrestadores) {
-			fim = len(ordPrestadores)
-		}
-		ordPrestadores = ordPrestadores[inicio:fim]
-		prestadores = ordPrestadores
+	mediaGlobal := mediaGlobalPadrao
+	if totalAvaliados > 0 {
+		mediaGlobal = somaNotas / float64(totalAvaliados)
 	}
 
-	if prestadores == nil {
-		prestadores = []dto.PrestadorPublicoDTO{}
+	for i := range candidatos {
+		candidatos[i].notaPonderada = utils.NotaPonderada(
+			candidatos[i].prestador.NotaMedia,
+			candidatos[i].prestador.TotalAvaliacoes,
+			mediaGlobal,
+		)
+	}
+
+	sort.SliceStable(candidatos, func(i, j int) bool {
+		if proximos {
+			di := candidatos[i].prestador.DistanciaKm
+			dj := candidatos[j].prestador.DistanciaKm
+			if di != dj {
+				return di < dj
+			}
+		}
+		if candidatos[i].notaPonderada != candidatos[j].notaPonderada {
+			return candidatos[i].notaPonderada > candidatos[j].notaPonderada
+		}
+		if candidatos[i].prestador.TotalAvaliacoes != candidatos[j].prestador.TotalAvaliacoes {
+			return candidatos[i].prestador.TotalAvaliacoes > candidatos[j].prestador.TotalAvaliacoes
+		}
+		return candidatos[i].prestador.Nome < candidatos[j].prestador.Nome
+	})
+
+	if inicio > len(candidatos) {
+		inicio = len(candidatos)
+	}
+	fim := inicio + limite
+	if fim > len(candidatos) {
+		fim = len(candidatos)
+	}
+
+	prestadores := make([]dto.PrestadorPublicoDTO, 0, fim-inicio)
+	for _, candidato := range candidatos[inicio:fim] {
+		prestadores = append(prestadores, candidato.prestador)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

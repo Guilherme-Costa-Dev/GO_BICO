@@ -37,12 +37,12 @@ type AtualizarPrestadorDTO struct {
 }
 
 type BuscarPrestadorDTO struct {
-	Username string `json:"username"`
-	Tipo     string `json:"tipo"`
-	Inicio   string `json:"inicio"`
-	Limite   string `json:"limite"`
-	Busca    string `json:"busca"`
-	Raio     string `json:"raio"`
+	Termo  string `json:"termo"`
+	Tipo   string `json:"tipo"`
+	Inicio string `json:"inicio"`
+	Limite string `json:"limite"`
+	Busca  string `json:"busca"`
+	Raio   string `json:"raio"`
 }
 
 type CriarPrestadorDTO struct {
