@@ -494,15 +494,21 @@ Remove o documento da coleção `prestadores` e a conta no Firebase Auth.
 
 `GET /prestadores/busca` — **requer token**
 
-Retorna uma lista pública de prestadores. Sem `busca=proximos`, ordena por `notaMedia` (decrescente) e ainda calcula `distanciaKm` em relação ao cliente autenticado, quando ele tem localização cadastrada. Com `busca=proximos`, filtra pelo raio e ordena do mais próximo para o mais distante.
+Retorna uma lista pública de prestadores. A busca é textual e não depende de correspondência exata: o termo é comparado, sem acentos e sem diferenciar maiúsculas, como trecho de `username`, `nome`, `tiposServico`, `localAtuacao` e `sobre`.
+
+- **Com `termo`:** devolve quem contém o termo e ordena pelos melhores avaliados (nota ponderada, descrita abaixo).
+- **Sem `termo`:** devolve todos os prestadores, também ordenados pelos melhores avaliados.
+- **Com `busca=proximos`:** filtra pelo raio e ordena do mais próximo para o mais distante.
+
+A ordenação padrão usa a **nota ponderada** (média bayesiana): uma nota isolada não supera uma nota alta sustentada por muitas avaliações. O desempate é pelo total de avaliações e depois pelo nome. Prestadores sem avaliação ficam no fim.
 
 **Recebe (query params) — `BuscarPrestadorDTO`:**
 
 | Param | Tipo | Padrão | Descrição |
 |---|---|---|---|
-| `username` | string | — | Filtro exato por username (case-sensitive) |
+| `termo` | string | — | Busca por trecho em username, nome, tipos de serviço, local de atuação e sobre |
 | `tipo` | string | — | Filtro por um tipo de serviço (`array-contains`) |
-| `inicio` | int | `0` | Offset da paginação |
+| `inicio` | int | `0` | Offset da paginação (aplicado depois da ordenação) |
 | `limite` | int | `20` | Itens por página (máximo `100`) |
 | `busca` | string | — | Use `proximos` para busca por distância |
 | `raio` | float | `10` | Raio em km (somente com `busca=proximos`) |
@@ -510,7 +516,12 @@ Retorna uma lista pública de prestadores. Sem `busca=proximos`, ordena por `not
 Exemplos:
 
 ```http
-GET /prestadores/busca?tipo=<tipo>&inicio=0&limite=20
+GET /prestadores/busca?termo=eletricista&inicio=0&limite=20
+Authorization: Bearer <token>
+```
+
+```http
+GET /prestadores/busca?termo=jose&tipo=eletricista
 Authorization: Bearer <token>
 ```
 
@@ -552,7 +563,7 @@ Authorization: Bearer <token>
 ]
 ```
 
-> `distanciaKm` é preenchido sempre que o cliente autenticado e o prestador têm `lat`/`lng` cadastrados — inclusive na busca padrão, que **continua ordenada por `notaMedia`**. Fica `0` apenas quando a localização de um dos dois é desconhecida (por exemplo, quando quem chama a busca não tem documento na coleção `clientes`).
+> `distanciaKm` é preenchido sempre que o cliente autenticado e o prestador têm `lat`/`lng` cadastrados — inclusive na busca padrão, que **continua ordenada pelos melhores avaliados**. Fica `0` apenas quando a localização de um dos dois é desconhecida (por exemplo, quando quem chama a busca não tem documento na coleção `clientes`) ou quando as coordenadas são iguais.
 
 **Erros:** `400` `inicio`/`limite`/`raio` inválidos, `busca=proximos` sem localização do cliente; `401` token; `500` falha na consulta.
 
