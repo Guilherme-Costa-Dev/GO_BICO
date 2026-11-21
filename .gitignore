@@ -16,6 +16,9 @@ serviceAccountKey.json
 /server
 /bicoAPI
 
+# Imagens enviadas via POST /uploads
+/uploads/
+
 # Pastas da IDE e Sistema Operacional
 .vscode/
 .idea/

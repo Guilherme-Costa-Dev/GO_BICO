@@ -8,6 +8,7 @@ O Bico API é o backend REST da plataforma que conecta clientes a prestadores de
 - **Banco de dados:** Google Cloud Firestore (NoSQL)
 - **Autenticação:** Firebase Authentication (JWT)
 - **Geocodificação:** BrasilAPI (`https://brasilapi.com.br/api/cep/v2/{cep}`)
+- **Armazenamento de imagens:** disco local (pasta `./uploads`, configurável por `UPLOAD_DIR`)
 
 ## Autenticação
 
@@ -22,7 +23,7 @@ Authorization: Bearer <SEU_TOKEN_JWT>
 - Nas rotas do próprio usuário, **o UID vem do token** — não é necessário (nem aceito) enviar o ID no corpo/URL.
 - Sem token, formato inválido ou token expirado: **401 Unauthorized** com mensagem em texto puro.
 
-Rotas **públicas** (sem token): `POST /clientes` e `POST /prestadores`. Todas as demais exigem autenticação.
+Rotas **públicas** (sem token): `POST /clientes`, `POST /prestadores` e `GET /uploads/<arquivo>` (leitura das imagens). Todas as demais exigem autenticação.
 
 ## Convenções da API
 
@@ -102,6 +103,8 @@ Além de `UserBase`:
 | DELETE | `/prestadores` | Sim | — | Status (200) |
 | GET | `/prestadores/busca` | Sim | Query params | `[PrestadorPublicoDTO]` |
 | PUT | `/prestadores/email?email=` | Sim | Query `email` | Status (200) |
+| POST | `/uploads` | Sim | `multipart/form-data` (`file`) | `{ "url": "..." }` (201) |
+| GET | `/uploads/<arquivo>` | Não | — | Imagem |
 
 ---
 
@@ -584,6 +587,63 @@ Atualiza o e-mail no Firebase Auth e no Firestore. Se o Firestore falhar, tenta 
 ```
 
 **Erros:** `400` e-mail não fornecido; `401` token; `500` falha no Auth/Firestore/rollback.
+
+---
+
+## Upload de imagens
+
+As imagens são gravadas no disco do próprio servidor e servidas por URL. O upload exige autenticação; a leitura **não** exige, porque `<img src>` não envia o header `Authorization` — a proteção é o nome aleatório (não enumerável) do arquivo.
+
+**Configuração (variáveis de ambiente):**
+
+| Variável | Padrão | Descrição |
+|---|---|---|
+| `UPLOAD_DIR` | `./uploads` | Pasta onde os arquivos são salvos |
+| `PUBLIC_BASE_URL` | inferida da requisição | Base usada para montar a URL devolvida (ex.: `https://maquina.tailnet.ts.net`) |
+
+> Sem `PUBLIC_BASE_URL`, a URL é montada a partir do host da requisição. Requisições HTTPS (inclusive via Tailscale Funnel, por `X-Forwarded-Proto` ou host `.ts.net`) geram URL `https://`.
+
+### 1. Enviar imagem
+
+`POST /uploads` — **requer token**
+
+**Recebe:** `multipart/form-data` com o campo `file`.
+
+| Campo | Tipo | Obrigatório | Descrição |
+|---|---|---|---|
+| `file` | arquivo | sim | Imagem jpg, png, webp ou gif, até **8 MB** |
+
+O formato é validado pelo conteúdo real do arquivo (não pela extensão); SVG é rejeitado.
+
+```http
+POST /uploads
+Authorization: Bearer <SEU_TOKEN_JWT>
+Content-Type: multipart/form-data; boundary=...
+```
+
+```bash
+curl -X POST http://localhost:8080/uploads \
+  -H "Authorization: Bearer <SEU_TOKEN_JWT>" \
+  -F "file=@foto.jpg"
+```
+
+**Devolve:** `201 Created`
+
+```json
+{ "url": "http://localhost:8080/uploads/<uuid>.jpg" }
+```
+
+Use a URL devolvida em `fotoPerfil`, `fotoPaginaPerfil` ou `fotosServicos` no `PUT /prestadores` (a criação do prestador não recebe fotos, então o fluxo é criar → enviar imagem → atualizar).
+
+**Erros:** `400` campo `file` ausente, formulário multipart inválido ou formato não suportado; `401` token ausente/inválido; `413` arquivo acima de 8 MB; `500` falha ao salvar em disco.
+
+### 2. Ler imagem
+
+`GET /uploads/<arquivo>` — **público**
+
+Serve o arquivo salvo em `UPLOAD_DIR`. Responde com `Cache-Control` longo e `X-Content-Type-Options: nosniff`; listagem de diretório não é exposta.
+
+**Erros:** `404` arquivo inexistente.
 
 ---
 
