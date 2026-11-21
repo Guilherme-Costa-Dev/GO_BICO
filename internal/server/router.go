@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 
 	"bico/internal/handler"
 	"bico/internal/middleware"
@@ -13,6 +14,12 @@ import (
 func New(db *firestore.Client, authClient *auth.Client) http.Handler {
 	clienteHandler := handler.NewClienteHandler(db, authClient)
 	prestadorHandler := handler.NewPrestadorHandler(db, authClient)
+
+	uploadDir := os.Getenv("UPLOAD_DIR")
+	if uploadDir == "" {
+		uploadDir = "./uploads"
+	}
+	uploadHandler := handler.NewUploadHandler(uploadDir)
 
 	mux := http.NewServeMux()
 
@@ -32,6 +39,9 @@ func New(db *firestore.Client, authClient *auth.Client) http.Handler {
 	mux.HandleFunc("PUT /prestadores", middleware.Auth(authClient, prestadorHandler.AtualizarPrestador))
 	mux.HandleFunc("DELETE /prestadores", middleware.Auth(authClient, prestadorHandler.DeletarPrestador))
 	mux.HandleFunc("PUT /prestadores/email", middleware.Auth(authClient, prestadorHandler.MudarEmail))
+
+	mux.HandleFunc("POST /uploads", middleware.Auth(authClient, uploadHandler.Upload))
+	mux.Handle("GET /uploads/", http.StripPrefix("/uploads", handler.StaticUploads(uploadDir)))
 
 	return middleware.Cors(mux)
 }
