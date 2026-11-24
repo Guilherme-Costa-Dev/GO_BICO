@@ -23,6 +23,7 @@ type Cliente struct {
 	UserBase
 	Numero      string   `json:"numero" firestore:"numero"`
 	Complemento string   `json:"complemento" firestore:"complemento"`
+	FotoPerfil  string   `json:"fotoPerfil" firestore:"fotoPerfil"`
 	Favoritos   []string `json:"favoritos" firestore:"favoritos"`
 }
 

@@ -154,6 +154,11 @@ func (h *ClienteHandler) AtualizarCliente(w http.ResponseWriter, r *http.Request
 		{Path: "complemento", Value: data.Complemento},
 	}
 
+	// Campo opcional: ausente mantém a foto atual; "" remove.
+	if data.FotoPerfil != nil {
+		updates = append(updates, firestore.Update{Path: "fotoPerfil", Value: *data.FotoPerfil})
+	}
+
 	if data.Cep != "" {
 		lat, lng, err := utils.BuscarCoordPorCep(data.Cep)
 		if err != nil {

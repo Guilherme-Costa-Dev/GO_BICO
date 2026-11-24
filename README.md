@@ -54,6 +54,7 @@ Além de `UserBase`:
 |---|---|---|
 | `numero` | string | `numero` |
 | `complemento` | string | `complemento` |
+| `fotoPerfil` | string | `fotoPerfil` (URL da imagem) |
 | `favoritos` | []string | `favoritos` (UIDs de prestadores) |
 
 ### `Prestador`
@@ -153,6 +154,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
   "email": "string",
   "numero": "string",
   "complemento": "string",
+  "fotoPerfil": "",
   "favoritos": []
 }
 ```
@@ -179,6 +181,8 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 
 **Substituição**: envie o objeto completo. Campos não enviados são gravados como vazios, e campos enviados como `""` também apagam o valor. Se `cep` vier preenchido, as coordenadas são recalculadas.
 
+> Exceção: `fotoPerfil` é opcional. Se o campo **não** for enviado, a foto atual é mantida; se for enviado como `""`, ela é removida.
+
 **Recebe (JSON) — `AtualizarClienteDTO`:**
 
 | Campo | Tipo | Obrigatório | Descrição |
@@ -188,6 +192,7 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
 | `cep` | string | sim | CEP (dispara nova geocodificação) |
 | `numero` | string | não | Número |
 | `complemento` | string | não | Complemento |
+| `fotoPerfil` | string | não | URL da foto de perfil (use o retorno de `POST /uploads`) |
 
 ```json
 {
@@ -195,7 +200,8 @@ Cria o usuário no Firebase Auth, geocodifica o CEP e salva o documento na cole�
   "cpf": "string",
   "cep": "string",
   "numero": "string",
-  "complemento": "string"
+  "complemento": "string",
+  "fotoPerfil": "https://exemplo.com/uploads/<uuid>.jpg"
 }
 ```
 
@@ -633,7 +639,7 @@ curl -X POST http://localhost:8080/uploads \
 { "url": "http://localhost:8080/uploads/<uuid>.jpg" }
 ```
 
-Use a URL devolvida em `fotoPerfil`, `fotoPaginaPerfil` ou `fotosServicos` no `PUT /prestadores` (a criação do prestador não recebe fotos, então o fluxo é criar → enviar imagem → atualizar).
+Use a URL devolvida em `fotoPerfil` no `PUT /clientes` (foto do cliente) ou em `fotoPerfil`, `fotoPaginaPerfil` e `fotosServicos` no `PUT /prestadores` (a criação dos usuários não recebe fotos, então o fluxo é criar → enviar imagem → atualizar).
 
 **Erros:** `400` campo `file` ausente, formulário multipart inválido ou formato não suportado; `401` token ausente/inválido; `413` arquivo acima de 8 MB; `500` falha ao salvar em disco.
 

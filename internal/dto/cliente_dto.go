@@ -1,11 +1,12 @@
 package dto
 
 type AtualizarClienteDTO struct {
-	Nome        string `json:"nome" firestore:"nome"`
-	Cpf         string `json:"cpf" firestore:"cpf"`
-	Cep         string `json:"cep" firestore:"cep"`
-	Numero      string `json:"numero" firestore:"numero"`
-	Complemento string `json:"complemento" firestore:"complemento"`
+	Nome        string  `json:"nome" firestore:"nome"`
+	Cpf         string  `json:"cpf" firestore:"cpf"`
+	Cep         string  `json:"cep" firestore:"cep"`
+	Numero      string  `json:"numero" firestore:"numero"`
+	Complemento string  `json:"complemento" firestore:"complemento"`
+	FotoPerfil  *string `json:"fotoPerfil" firestore:"fotoPerfil"`
 }
 
 type AdicionarAvaliacaoDTO struct {
